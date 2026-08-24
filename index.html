@@ -128,12 +128,12 @@
   .lane-label .dot{width:8px; height:8px; border-radius:50%; flex:none;}
 
   #stageScroll{flex:1 1 auto; overflow-x:auto; overflow-y:hidden; position:relative;}
-  #stage{display:block; height:100%; width:100%;}
+  #stage{display:block; width:100%;}
 
   .node{cursor:pointer;}
   .node circle.core{transition:r .15s ease, opacity .2s ease;}
-  .node text{font-family:"Gowun Batang",serif; font-size:13px; fill:var(--text-primary); pointer-events:none; transition:opacity .2s ease;}
-  .node text.years{font-family:"JetBrains Mono",monospace; font-size:9.5px; fill:var(--text-muted);}
+  .node text{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:var(--text-primary); pointer-events:none; transition:opacity .2s ease;}
+  .node text.years{font-family:Consolas,"JetBrains Mono",monospace; font-size:9px; fill:var(--text-muted);}
   .node:focus-visible circle.ring{stroke:var(--focus-ring); stroke-width:2;}
 
   .selected-fade .node:not(.active-node) circle.core,

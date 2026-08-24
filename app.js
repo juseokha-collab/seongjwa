@@ -218,6 +218,7 @@
     var layout = computeLayout();
     stage.setAttribute("viewBox","0 0 "+layout.width+" "+layout.height);
     stage.style.minWidth = layout.width+"px";
+    stage.style.height = layout.height+"px";
     stage.innerHTML="";
     nodeEls={}; edgeEls=[];
 

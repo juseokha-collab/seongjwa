@@ -272,10 +272,14 @@
       if(!pa||!pb) return;
       var posA=layout.pos[pa.id], posB=layout.pos[pb.id];
       var dash = r.type==="영향" ? "5 4" : (r.type==="교류" ? "1 3.4" : null);
-      var attrs={class:"edge", x1:posA.x, y1:posA.y, x2:posB.x, y2:posB.y, "stroke-linecap":"round"};
+      var midX=(posA.x+posB.x)/2, midY=(posA.y+posB.y)/2;
+      var dist=Math.abs(posB.x-posA.x);
+      var bow=Math.max(18, Math.min(60, dist*0.18));
+      var ctrlY=midY-bow;
+      var attrs={class:"edge", d:"M"+posA.x+","+posA.y+" Q"+midX+","+ctrlY+" "+posB.x+","+posB.y, "stroke-linecap":"round"};
       if(dash) attrs["stroke-dasharray"]=dash;
       if(r.type!=="교류") attrs["marker-end"]="url(#arrow)";
-      var line=el("line",attrs);
+      var line=el("path",attrs);
       line.dataset.a=pa.id; line.dataset.b=pb.id; line.dataset.rid=r.id;
       edgeLayer.appendChild(line);
       edgeEls.push(line);

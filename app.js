@@ -367,7 +367,7 @@
     var sub = p.subId ? findSub(p.catId, p.subId) : null;
     html+='<span class="badge"><span class="dot" style="background:'+color+'"></span>'+escapeHtml(c?c.name:"")+(sub?(' · '+escapeHtml(sub.name)):'')+'</span>';
     html+='<div class="panel-actions"><button class="mini-btn" id="editPersonBtn">수정</button><button class="mini-btn danger" id="deletePersonBtn">삭제</button></div>';
-    html+='<h2>'+escapeHtml(p.name)+'</h2>';
+    html+='<h2>'+escapeHtml(p.name)+' <span class="update-count" title="수정 횟수">('+(p.updateCount||0)+')</span></h2>';
     html+='<div class="years">'+escapeHtml(panelYearsLabel(p))+'</div>';
     html+='<p class="bio">'+escapeHtml(p.bio||"")+'</p>';
 
@@ -566,8 +566,9 @@
       if(editingId){
         var p=personOf(editingId);
         for(var k in fields) p[k]=fields[k];
+        p.updateCount = (p.updateCount||0) + 1;
       } else {
-        fields.id=uid("p"); fields.notes=[];
+        fields.id=uid("p"); fields.notes=[]; fields.updateCount=0;
         STATE.people.push(fields);
       }
       closePersonModal();

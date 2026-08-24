@@ -307,10 +307,10 @@
       var g=el("g",{class:"node", tabindex:"0", role:"button", "aria-label":p.name+", "+yearsLabel(p)+(c?(", "+c.name):""), "data-id":p.id});
       g.appendChild(el("circle",{class:"ring", cx:pos.x, cy:pos.y, r:11, fill:"none", stroke:"transparent"}));
       g.appendChild(el("circle",{class:"core", cx:pos.x, cy:pos.y, r:5.5, fill:color, filter:"url(#starglow)"}));
-      var name=el("text",{x:pos.x, y:pos.y-14, "text-anchor":"middle"});
+      var name=el("text",{x:pos.x, y:pos.y-24, "text-anchor":"middle"});
       name.textContent = p.name;
       g.appendChild(name);
-      var yrs=el("text",{class:"years", x:pos.x, y:pos.y+22, "text-anchor":"middle"});
+      var yrs=el("text",{class:"years", x:pos.x, y:pos.y-12, "text-anchor":"middle"});
       yrs.textContent = yearsLabel(p);
       g.appendChild(yrs);
       g.addEventListener("click", function(id){ return function(e){ e.stopPropagation(); selectNode(id); }; }(p.id));

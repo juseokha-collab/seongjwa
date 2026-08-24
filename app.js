@@ -180,7 +180,7 @@
     var starCount = Math.max(60, Math.round(layout.width/16));
     for(var i=0;i<starCount;i++){
       var sx=Math.random()*layout.width, sy=Math.random()*layout.height, sr=Math.random()*1.1+0.3;
-      bg.appendChild(el("circle",{cx:sx,cy:sy,r:sr,fill:"#4b5178",opacity:(Math.random()*0.5+0.12).toFixed(2)}));
+      bg.appendChild(el("circle",{class:"bg-star",cx:sx,cy:sy,r:sr,opacity:(Math.random()*0.5+0.12).toFixed(2)}));
     }
     stage.appendChild(bg);
 
@@ -467,6 +467,23 @@
     });
   }
 
+  // ---------------- theme ----------------
+  function initTheme(){
+    var btn=document.getElementById("themeToggle");
+    function sync(){
+      var isLight = document.documentElement.getAttribute("data-theme")==="light";
+      btn.textContent = isLight ? "☀" : "🌙";
+      btn.setAttribute("aria-label", isLight ? "다크 모드로 전환" : "라이트 모드로 전환");
+    }
+    sync();
+    btn.addEventListener("click", function(){
+      var isLight = document.documentElement.getAttribute("data-theme")==="light";
+      if(isLight){ document.documentElement.removeAttribute("data-theme"); try{ localStorage.setItem("seongjwa.theme","dark"); }catch(e){} }
+      else{ document.documentElement.setAttribute("data-theme","light"); try{ localStorage.setItem("seongjwa.theme","light"); }catch(e){} }
+      sync();
+    });
+  }
+
   // ---------------- search ----------------
   function initSearch(){
     var input=document.getElementById("searchInput");
@@ -490,6 +507,7 @@
 
     initModal();
     initSearch();
+    initTheme();
     renderAll();
   });
 

@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<script>(function(){try{if(localStorage.getItem("seongjwa.theme")==="light") document.documentElement.setAttribute("data-theme","light");}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0d1b">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,6 +30,23 @@
     --rose:#e8849b;
     --star-glow:#f2d98a;
     --focus-ring:#f2d98a;
+    --star-dust:#4b5178;
+  }
+
+  :root[data-theme="light"]{
+    --bg-deep:#eef1fa;
+    --bg-panel:#ffffff;
+    --bg-elevated:#f4f6fc;
+    --line-faint:#e1e5f3;
+    --line-mid:#c7cce4;
+    --text-primary:#1b1f36;
+    --text-secondary:#4d5372;
+    --text-muted:#767ca0;
+    --gold:#b9822a;
+    --rose:#c94a68;
+    --star-glow:#b9822a;
+    --focus-ring:#b9822a;
+    --star-dust:#c7cce4;
   }
 
   *{box-sizing:border-box;}
@@ -127,6 +145,7 @@
 
   .grid-line{stroke:var(--line-faint); stroke-dasharray:2 5;}
   .grid-label{font-family:"JetBrains Mono",monospace; font-size:11px; fill:var(--text-muted);}
+  .bg-star{fill:var(--star-dust);}
 
   #emptyHint{
     position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center;
@@ -252,6 +271,7 @@
   <div class="topbar-right">
     <nav class="legend" id="legend" aria-label="분야 필터"></nav>
     <button class="btn primary" id="addPersonBtn">+ 인물</button>
+    <button class="btn ghost" id="themeToggle" aria-label="화면 모드 전환">🌙</button>
     <span class="auth" id="authArea" hidden></span>
   </div>
 </header>

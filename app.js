@@ -3,7 +3,8 @@
 
   var PALETTE = ["#e8b84b","#b98be0","#5fd1c9","#e8849b","#7fb0e8","#e8a75f","#8fd17a","#d68fe0","#6fcf9e","#e0c56f"];
   var REL_TYPES = ["사제","영향","교류"];
-  var LANE_H = 110;
+  var SUBROW_H = 46;
+  var LANE_PAD = 22;
   var PX_PER_YEAR = 2.4;
   var MARGIN_L = 90, MARGIN_R = 90, MARGIN_TOP = 60, MARGIN_BOTTOM = 40;
   var MIN_GAP = 46;
@@ -87,41 +88,55 @@
 
   // ---------------- layout ----------------
   function computeLayout(){
-    var lanes = {};
-    STATE.categories.forEach(function(c,i){ lanes[c.id]=i; });
-    var years = STATE.people.map(function(p){ return p.sortYear; });
+    var active = activeCatIds || STATE.categories.map(function(c){ return c.id; });
+    var activeCats = STATE.categories.filter(function(c){ return active.indexOf(c.id)>-1; });
+    var activePeople = STATE.people.filter(function(p){ return active.indexOf(p.catId)>-1; });
+
+    var years = activePeople.map(function(p){ return p.sortYear; });
     var minY = years.length ? Math.min.apply(null,years) : 1900;
     var maxY = years.length ? Math.max.apply(null,years) : 2026;
     if(minY===maxY){ minY-=10; maxY+=10; }
     var span = maxY-minY;
 
-    var pos = {};
-    STATE.people.forEach(function(p){
-      var lane = lanes[p.catId]!==undefined ? lanes[p.catId] : 0;
-      var x = MARGIN_L + (p.sortYear-minY)*PX_PER_YEAR;
-      var y = MARGIN_TOP + lane*LANE_H + LANE_H/2;
-      pos[p.id] = {x:x,y:y,lane:lane};
+    var xOf = {};
+    activePeople.forEach(function(p){ xOf[p.id] = MARGIN_L + (p.sortYear-minY)*PX_PER_YEAR; });
+
+    // pack people within each category into sub-rows so close-in-time people stack vertically
+    // instead of being pushed apart horizontally (which would distort the timeline)
+    var subRowOf = {}, rowCountByCat = {};
+    activeCats.forEach(function(c){
+      var members = activePeople.filter(function(p){ return p.catId===c.id; })
+        .sort(function(a,b){ return xOf[a.id]-xOf[b.id]; });
+      var rowEnds = [];
+      members.forEach(function(p){
+        var x = xOf[p.id];
+        var placed = false;
+        for(var r=0;r<rowEnds.length;r++){
+          if(x - rowEnds[r] >= MIN_GAP){ subRowOf[p.id]=r; rowEnds[r]=x; placed=true; break; }
+        }
+        if(!placed){ subRowOf[p.id]=rowEnds.length; rowEnds.push(x); }
+      });
+      rowCountByCat[c.id] = Math.max(1, rowEnds.length);
     });
 
-    // collision nudge per lane, sorted by x
-    var byLane = {};
-    STATE.people.forEach(function(p){
-      var l = pos[p.id].lane;
-      (byLane[l]=byLane[l]||[]).push(p.id);
+    var laneTop = {};
+    var cursorY = MARGIN_TOP;
+    activeCats.forEach(function(c){
+      laneTop[c.id] = cursorY;
+      cursorY += rowCountByCat[c.id]*SUBROW_H + LANE_PAD;
     });
-    Object.keys(byLane).forEach(function(l){
-      var ids = byLane[l].slice().sort(function(a,b){ return pos[a].x-pos[b].x; });
-      for(var i=1;i<ids.length;i++){
-        var prev=pos[ids[i-1]], cur=pos[ids[i]];
-        if(cur.x - prev.x < MIN_GAP) cur.x = prev.x + MIN_GAP;
-      }
+    var height = Math.max(cursorY - LANE_PAD + MARGIN_BOTTOM, MARGIN_TOP+SUBROW_H+MARGIN_BOTTOM);
+
+    var pos = {};
+    activePeople.forEach(function(p){
+      var row = subRowOf[p.id]||0;
+      pos[p.id] = {x:xOf[p.id], y:laneTop[p.catId]+row*SUBROW_H+SUBROW_H/2};
     });
 
     var width = MARGIN_L + span*PX_PER_YEAR + MARGIN_R;
-    STATE.people.forEach(function(p){ if(pos[p.id].x+MARGIN_R > width) width = pos[p.id].x+MARGIN_R; });
-    var height = MARGIN_TOP + Math.max(STATE.categories.length,1)*LANE_H + MARGIN_BOTTOM;
+    activePeople.forEach(function(p){ if(pos[p.id].x+MARGIN_R > width) width = pos[p.id].x+MARGIN_R; });
 
-    return {pos:pos, minY:minY, maxY:maxY, width:Math.max(width,900), height:height, lanes:lanes};
+    return {pos:pos, minY:minY, maxY:maxY, width:Math.max(width,900), height:height, activeCats:activeCats, laneTop:laneTop, rowCountByCat:rowCountByCat};
   }
 
   function fmtYear(y){
@@ -193,24 +208,9 @@
         if(!activeCatIds) activeCatIds = STATE.categories.map(function(c){return c.id;});
         var idx = activeCatIds.indexOf(id);
         if(idx>-1) activeCatIds.splice(idx,1); else activeCatIds.push(id);
-        renderLegend(); applyFilter();
+        renderLegend(); renderStage();
       };}(c.id));
       legend.appendChild(b);
-    });
-  }
-
-  function applyFilter(){
-    var active = activeCatIds || STATE.categories.map(function(c){return c.id;});
-    STATE.people.forEach(function(p){
-      var visible = active.indexOf(p.catId)>-1;
-      var g = nodeEls[p.id];
-      if(!g) return;
-      g.querySelectorAll("circle.core, text").forEach(function(n){ n.style.opacity = visible?"":"0.12"; });
-    });
-    edgeEls.forEach(function(line){
-      var pa=personOf(line.dataset.a), pb=personOf(line.dataset.b);
-      var visible = pa && pb && active.indexOf(pa.catId)>-1 && active.indexOf(pb.catId)>-1;
-      line.style.opacity = visible?"":"0.05";
     });
   }
 
@@ -226,10 +226,11 @@
     // lane label column
     laneCol.style.height = layout.height+"px";
     laneCol.innerHTML="";
-    STATE.categories.forEach(function(c,i){
+    layout.activeCats.forEach(function(c){
+      var bandH = layout.rowCountByCat[c.id]*SUBROW_H;
       var d=document.createElement("div");
       d.className="lane-label";
-      d.style.top=(MARGIN_TOP+i*LANE_H+LANE_H/2-11)+"px";
+      d.style.top=(layout.laneTop[c.id]+bandH/2-11)+"px";
       d.innerHTML='<span class="dot" style="background:'+c.color+'"></span>'+escapeHtml(c.name);
       laneCol.appendChild(d);
     });
@@ -256,6 +257,15 @@
     }
     stage.appendChild(gl);
 
+    // lane band dividers
+    var laneDiv=el("g",{"aria-hidden":"true"});
+    layout.activeCats.forEach(function(c,i){
+      if(i===0) return;
+      var y=layout.laneTop[c.id]-LANE_PAD/2;
+      laneDiv.appendChild(el("line",{x1:MARGIN_L-20,y1:y,x2:layout.width-MARGIN_R+20,y2:y,class:"lane-divider"}));
+    });
+    stage.appendChild(laneDiv);
+
     var defs=el("defs",{});
     var marker=el("marker",{id:"arrow",viewBox:"0 0 10 10",refX:"8",refY:"5",markerWidth:"7",markerHeight:"7",orient:"auto-start-reverse"});
     marker.appendChild(el("path",{d:"M0,0 L10,5 L0,10 z",fill:"var(--line-mid)"}));
@@ -271,6 +281,7 @@
       var pa=personOf(r.a), pb=personOf(r.b);
       if(!pa||!pb) return;
       var posA=layout.pos[pa.id], posB=layout.pos[pb.id];
+      if(!posA||!posB) return;
       var dash = r.type==="영향" ? "5 4" : (r.type==="교류" ? "1 3.4" : null);
       var midX=(posA.x+posB.x)/2, midY=(posA.y+posB.y)/2;
       var dist=Math.abs(posB.x-posA.x);
@@ -289,9 +300,10 @@
     // nodes
     var nodeLayer=el("g");
     STATE.people.forEach(function(p){
+      var pos = layout.pos[p.id];
+      if(!pos) return;
       var c = catOf(p.catId);
       var color = c? c.color : "#9ba1c4";
-      var pos = layout.pos[p.id];
       var g=el("g",{class:"node", tabindex:"0", role:"button", "aria-label":p.name+", "+yearsLabel(p)+(c?(", "+c.name):""), "data-id":p.id});
       g.appendChild(el("circle",{class:"ring", cx:pos.x, cy:pos.y, r:11, fill:"none", stroke:"transparent"}));
       g.appendChild(el("circle",{class:"core", cx:pos.x, cy:pos.y, r:5.5, fill:color, filter:"url(#starglow)"}));
@@ -308,8 +320,10 @@
     });
     stage.appendChild(nodeLayer);
 
-    applyFilter();
-    if(currentId) highlightSelection(currentId);
+    if(currentId){
+      if(nodeEls[currentId]) highlightSelection(currentId);
+      else clearSelection();
+    }
   }
 
   function highlightSelection(id){
@@ -655,6 +669,26 @@
     });
   }
 
+  // ---------------- spotlight ----------------
+  function spotlightRandomPerson(){
+    if(!STATE.people.length) return;
+    var catsWithPeople = STATE.categories.filter(function(c){
+      return STATE.people.some(function(p){ return p.catId===c.id; });
+    });
+    if(!catsWithPeople.length) return;
+    var cat = catsWithPeople[Math.floor(Math.random()*catsWithPeople.length)];
+    var members = STATE.people.filter(function(p){ return p.catId===cat.id; });
+    var person = members[Math.floor(Math.random()*members.length)];
+    selectNode(person.id);
+    var body=document.getElementById("panelBody");
+    if(body && body.firstChild){
+      var tag=document.createElement("div");
+      tag.className="spotlight-tag";
+      tag.textContent="🎲 오늘의 리마인드";
+      body.insertBefore(tag, body.firstChild);
+    }
+  }
+
   // ---------------- search ----------------
   function initSearch(){
     var input=document.getElementById("searchInput");
@@ -681,6 +715,7 @@
     initSearch();
     initTheme();
     renderAll();
+    spotlightRandomPerson();
   });
 
   window.SEONGJWA = {

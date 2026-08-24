@@ -103,6 +103,9 @@
     y = Math.round(y);
     return y<0 ? ("BC "+(-y)) : (""+y);
   }
+  function yearsLabel(p){
+    return fmtYear(p.sortYear) + (p.deathYear!=null ? ("–"+fmtYear(p.deathYear)) : "");
+  }
 
   // ---------------- svg render ----------------
   var svgNS = "http://www.w3.org/2000/svg";
@@ -229,14 +232,14 @@
       var c = catOf(p.catId);
       var color = c? c.color : "#9ba1c4";
       var pos = layout.pos[p.id];
-      var g=el("g",{class:"node", tabindex:"0", role:"button", "aria-label":p.name+", "+(p.years||fmtYear(p.sortYear))+(c?(", "+c.name):""), "data-id":p.id});
+      var g=el("g",{class:"node", tabindex:"0", role:"button", "aria-label":p.name+", "+yearsLabel(p)+(c?(", "+c.name):""), "data-id":p.id});
       g.appendChild(el("circle",{class:"ring", cx:pos.x, cy:pos.y, r:11, fill:"none", stroke:"transparent"}));
       g.appendChild(el("circle",{class:"core", cx:pos.x, cy:pos.y, r:5.5, fill:color, filter:"url(#starglow)"}));
       var name=el("text",{x:pos.x, y:pos.y-14, "text-anchor":"middle"});
       name.textContent = p.name;
       g.appendChild(name);
       var yrs=el("text",{class:"years", x:pos.x, y:pos.y+22, "text-anchor":"middle"});
-      yrs.textContent = p.years || fmtYear(p.sortYear);
+      yrs.textContent = yearsLabel(p);
       g.appendChild(yrs);
       g.addEventListener("click", function(id){ return function(e){ e.stopPropagation(); selectNode(id); }; }(p.id));
       g.addEventListener("keydown", function(id){ return function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); selectNode(id);} }; }(p.id));
@@ -308,7 +311,7 @@
     html+='<span class="badge"><span class="dot" style="background:'+color+'"></span>'+escapeHtml(c?c.name:"")+'</span>';
     html+='<div class="panel-actions"><button class="mini-btn" id="editPersonBtn">수정</button><button class="mini-btn danger" id="deletePersonBtn">삭제</button></div>';
     html+='<h2>'+escapeHtml(p.name)+'</h2>';
-    html+='<div class="years">'+escapeHtml(p.years||fmtYear(p.sortYear))+'</div>';
+    html+='<div class="years">'+escapeHtml(yearsLabel(p))+'</div>';
     html+='<p class="bio">'+escapeHtml(p.bio||"")+'</p>';
 
     html+='<h3>관계 · '+relLines.length+'</h3>';
@@ -416,7 +419,7 @@
     document.getElementById("pmTitle").textContent = p ? "인물 수정" : "새 인물 추가";
     document.getElementById("pmName").value = p ? p.name : "";
     document.getElementById("pmYear").value = p ? p.sortYear : "";
-    document.getElementById("pmYears").value = p ? (p.years||"") : "";
+    document.getElementById("pmDeathYear").value = (p && p.deathYear!=null) ? p.deathYear : "";
     var bioEl=document.getElementById("pmBio");
     bioEl.value = p ? (p.bio||"") : "";
     autoGrow(bioEl);
@@ -452,11 +455,16 @@
       e.preventDefault();
       var name=document.getElementById("pmName").value.trim();
       var yearRaw=document.getElementById("pmYear").value;
-      var years=document.getElementById("pmYears").value.trim();
+      var deathYearRaw=document.getElementById("pmDeathYear").value;
       var bio=document.getElementById("pmBio").value.trim();
       var catSel=document.getElementById("pmCat").value;
       var sortYear = parseInt(yearRaw,10);
-      if(!name || yearRaw==="" || isNaN(sortYear)){ alert("이름과 정렬 연도(숫자)는 필수예요."); return; }
+      if(!name || yearRaw==="" || isNaN(sortYear)){ alert("이름과 출생년(숫자)은 필수예요."); return; }
+      var deathYear = null;
+      if(deathYearRaw!==""){
+        deathYear = parseInt(deathYearRaw,10);
+        if(isNaN(deathYear)){ alert("사망년은 숫자로 입력해주세요."); return; }
+      }
       var catId = catSel;
       if(catSel==="__new__"){
         var newName=document.getElementById("pmNewCat").value.trim();
@@ -465,9 +473,9 @@
       }
       if(editingId){
         var p=personOf(editingId);
-        p.name=name; p.sortYear=sortYear; p.years=years; p.bio=bio; p.catId=catId;
+        p.name=name; p.sortYear=sortYear; p.deathYear=deathYear; p.bio=bio; p.catId=catId;
       } else {
-        STATE.people.push({id:uid("p"), name:name, sortYear:sortYear, years:years, bio:bio, catId:catId, notes:[]});
+        STATE.people.push({id:uid("p"), name:name, sortYear:sortYear, deathYear:deathYear, bio:bio, catId:catId, notes:[]});
       }
       closePersonModal();
       commit();

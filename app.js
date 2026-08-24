@@ -389,8 +389,10 @@
     if(!relLines.length) html+='<div class="note-empty">아직 연결된 관계가 없습니다.</div>';
 
     var otherPeople = STATE.people.filter(function(x){ return x.id!==id; });
+    function relLabel(x){ return x.name+" ("+fmtYear(x.sortYear)+")"; }
     html+='<div class="rel-add">';
-    html+='<select id="relTarget">'+ (otherPeople.length? otherPeople.map(function(x){ return '<option value="'+x.id+'">'+escapeHtml(x.name)+'</option>'; }).join("") : '<option value="">추가할 인물이 없습니다</option>') +'</select>';
+    html+='<input type="text" id="relTarget" list="relTargetList" placeholder="'+(otherPeople.length?"인물 검색":"추가할 인물이 없습니다")+'"'+(otherPeople.length?"":" disabled")+'>';
+    html+='<datalist id="relTargetList">'+otherPeople.map(function(x){ return '<option value="'+escapeHtml(relLabel(x))+'">'; }).join("")+'</datalist>';
     html+='<select id="relType">'+REL_TYPES.map(function(t){ return '<option value="'+t+'">'+t+'</option>'; }).join("")+'</select>';
     html+='<button class="mini-btn" id="relAddBtn"'+(otherPeople.length?"":" disabled")+'>+ 연결</button>';
     html+='</div>';
@@ -435,12 +437,13 @@
     });
     var relAddBtn=document.getElementById("relAddBtn");
     if(relAddBtn) relAddBtn.addEventListener("click",function(){
-      var target=document.getElementById("relTarget").value;
+      var typed=document.getElementById("relTarget").value.trim();
       var type=document.getElementById("relType").value;
-      if(!target) return;
-      var exists = STATE.relationships.some(function(r){ return (r.a===id&&r.b===target)||(r.a===target&&r.b===id); });
+      var target = otherPeople.filter(function(x){ return relLabel(x)===typed; })[0];
+      if(!target){ alert("목록에서 인물을 선택해주세요."); return; }
+      var exists = STATE.relationships.some(function(r){ return (r.a===id&&r.b===target.id)||(r.a===target.id&&r.b===id); });
       if(exists){ alert("이미 연결된 관계가 있어요."); return; }
-      STATE.relationships.push({id:uid("rel"), a:id, b:target, type:type});
+      STATE.relationships.push({id:uid("rel"), a:id, b:target.id, type:type});
       commit();
     });
     body.querySelectorAll(".note-del").forEach(function(btn){

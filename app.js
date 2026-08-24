@@ -104,7 +104,29 @@
     return y<0 ? ("BC "+(-y)) : (""+y);
   }
   function yearsLabel(p){
-    return fmtYear(p.sortYear) + (p.deathYear!=null ? ("–"+fmtYear(p.deathYear)) : "");
+    return fmtYear(p.sortYear);
+  }
+  function parseDateInput(str){
+    str = (str||"").trim();
+    if(!str) return null;
+    var neg = false;
+    if(str[0]==="-"){ neg=true; str=str.slice(1); }
+    var parts = str.split(".").map(function(s){ return s.trim(); }).filter(function(s){ return s!==""; });
+    if(!parts.length) return null;
+    var y = parseInt(parts[0],10);
+    if(isNaN(y)) return null;
+    if(neg) y = -y;
+    var m = parts.length>1 ? parseInt(parts[1],10) : null;
+    var d = parts.length>2 ? parseInt(parts[2],10) : null;
+    if(m!=null && isNaN(m)) m=null;
+    if(d!=null && isNaN(d)) d=null;
+    return {y:y, m:m, d:d};
+  }
+  function formatDateInput(y,m,d){
+    if(y==null || isNaN(y)) return "";
+    var s = ""+y;
+    if(m!=null){ s += "."+m; if(d!=null) s += "."+d; }
+    return s;
   }
 
   // ---------------- svg render ----------------
@@ -418,8 +440,8 @@
     var modal=document.getElementById("personModal");
     document.getElementById("pmTitle").textContent = p ? "인물 수정" : "새 인물 추가";
     document.getElementById("pmName").value = p ? p.name : "";
-    document.getElementById("pmYear").value = p ? p.sortYear : "";
-    document.getElementById("pmDeathYear").value = (p && p.deathYear!=null) ? p.deathYear : "";
+    document.getElementById("pmYear").value = p ? formatDateInput(p.sortYear, p.birthMonth, p.birthDay) : "";
+    document.getElementById("pmDeathYear").value = p ? formatDateInput(p.deathYear, p.deathMonth, p.deathDay) : "";
     var bioEl=document.getElementById("pmBio");
     bioEl.value = p ? (p.bio||"") : "";
     autoGrow(bioEl);
@@ -454,16 +476,15 @@
     document.getElementById("pmForm").addEventListener("submit", function(e){
       e.preventDefault();
       var name=document.getElementById("pmName").value.trim();
-      var yearRaw=document.getElementById("pmYear").value;
-      var deathYearRaw=document.getElementById("pmDeathYear").value;
+      var birth = parseDateInput(document.getElementById("pmYear").value);
       var bio=document.getElementById("pmBio").value.trim();
       var catSel=document.getElementById("pmCat").value;
-      var sortYear = parseInt(yearRaw,10);
-      if(!name || yearRaw==="" || isNaN(sortYear)){ alert("이름과 출생년(숫자)은 필수예요."); return; }
-      var deathYear = null;
-      if(deathYearRaw!==""){
-        deathYear = parseInt(deathYearRaw,10);
-        if(isNaN(deathYear)){ alert("사망년은 숫자로 입력해주세요."); return; }
+      if(!name || !birth){ alert("이름과 출생년(예: 1960 또는 1960.3.5)은 필수예요."); return; }
+      var deathRaw = document.getElementById("pmDeathYear").value.trim();
+      var death = null;
+      if(deathRaw!==""){
+        death = parseDateInput(deathRaw);
+        if(!death){ alert("사망년 형식이 올바르지 않아요 (예: 2010 또는 2010.1.14)."); return; }
       }
       var catId = catSel;
       if(catSel==="__new__"){
@@ -471,11 +492,17 @@
         if(!newName){ alert("새 분야 이름을 입력해주세요."); return; }
         catId = ensureCategory(newName).id;
       }
+      var fields = {
+        name:name, bio:bio, catId:catId,
+        sortYear:birth.y, birthMonth:birth.m, birthDay:birth.d,
+        deathYear: death?death.y:null, deathMonth: death?death.m:null, deathDay: death?death.d:null
+      };
       if(editingId){
         var p=personOf(editingId);
-        p.name=name; p.sortYear=sortYear; p.deathYear=deathYear; p.bio=bio; p.catId=catId;
+        for(var k in fields) p[k]=fields[k];
       } else {
-        STATE.people.push({id:uid("p"), name:name, sortYear:sortYear, deathYear:deathYear, bio:bio, catId:catId, notes:[]});
+        fields.id=uid("p"); fields.notes=[];
+        STATE.people.push(fields);
       }
       closePersonModal();
       commit();

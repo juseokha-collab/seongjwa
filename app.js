@@ -439,7 +439,7 @@
       else newField.style.display="none";
     });
     document.getElementById("pmCancel").addEventListener("click", closePersonModal);
-    document.getElementById("personModal").addEventListener("click", function(e){ if(e.target===this) closePersonModal(); });
+    document.getElementById("pmClose").addEventListener("click", closePersonModal);
     document.getElementById("addPersonBtn").addEventListener("click", function(){ openPersonModal(null); });
     document.getElementById("pmForm").addEventListener("submit", function(e){
       e.preventDefault();
@@ -448,14 +448,14 @@
       var years=document.getElementById("pmYears").value.trim();
       var bio=document.getElementById("pmBio").value.trim();
       var catSel=document.getElementById("pmCat").value;
-      if(!name || yearRaw===""){ alert("이름과 정렬 연도는 필수예요."); return; }
+      var sortYear = parseInt(yearRaw,10);
+      if(!name || yearRaw==="" || isNaN(sortYear)){ alert("이름과 정렬 연도(숫자)는 필수예요."); return; }
       var catId = catSel;
       if(catSel==="__new__"){
         var newName=document.getElementById("pmNewCat").value.trim();
         if(!newName){ alert("새 분야 이름을 입력해주세요."); return; }
         catId = ensureCategory(newName).id;
       }
-      var sortYear = parseInt(yearRaw,10);
       if(editingId){
         var p=personOf(editingId);
         p.name=name; p.sortYear=sortYear; p.years=years; p.bio=bio; p.catId=catId;

@@ -131,6 +131,15 @@
   function yearsLabel(p){
     return fmtYear(p.sortYear);
   }
+  function panelYearsLabel(p){
+    if(p.deathYear==null) return fmtYear(p.sortYear);
+    var age = p.deathYear - p.sortYear;
+    if(p.birthMonth!=null && p.deathMonth!=null){
+      var earlier = p.deathMonth < p.birthMonth || (p.deathMonth===p.birthMonth && p.birthDay!=null && p.deathDay!=null && p.deathDay<p.birthDay);
+      if(earlier) age -= 1;
+    }
+    return fmtYear(p.sortYear)+"-"+fmtYear(p.deathYear)+" ("+age+")";
+  }
   function parseDateInput(str){
     str = (str||"").trim();
     if(!str) return null;
@@ -359,7 +368,7 @@
     html+='<span class="badge"><span class="dot" style="background:'+color+'"></span>'+escapeHtml(c?c.name:"")+(sub?(' · '+escapeHtml(sub.name)):'')+'</span>';
     html+='<div class="panel-actions"><button class="mini-btn" id="editPersonBtn">수정</button><button class="mini-btn danger" id="deletePersonBtn">삭제</button></div>';
     html+='<h2>'+escapeHtml(p.name)+'</h2>';
-    html+='<div class="years">'+escapeHtml(yearsLabel(p))+'</div>';
+    html+='<div class="years">'+escapeHtml(panelYearsLabel(p))+'</div>';
     html+='<p class="bio">'+escapeHtml(p.bio||"")+'</p>';
 
     html+='<h3>관계 · '+relLines.length+'</h3>';

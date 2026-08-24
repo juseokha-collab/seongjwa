@@ -232,7 +232,7 @@
   .modal-card{
     position:relative;
     background:var(--bg-panel); border:1px solid var(--line-faint); border-radius:14px;
-    padding:26px; width:420px; max-width:100%; max-height:88vh; overflow-y:auto;
+    padding:26px; width:840px; max-width:100%; max-height:88vh; overflow-y:auto;
   }
   .modal-card h2{font-family:"Gowun Batang",serif; font-size:1.2rem; font-weight:700; margin:0 0 18px;}
   .field{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
@@ -325,7 +325,7 @@
       </div>
       <div class="field">
         <label for="pmBio">한줄 소개</label>
-        <textarea id="pmBio" rows="3"></textarea>
+        <textarea id="pmBio" rows="3" style="resize:none; overflow-y:auto; max-height:320px;"></textarea>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn ghost" id="pmCancel">취소</button>

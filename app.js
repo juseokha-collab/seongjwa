@@ -405,6 +405,10 @@
 
   // ---------------- person modal ----------------
   var editingId=null;
+  function autoGrow(el){
+    el.style.height="auto";
+    el.style.height=(el.scrollHeight+2)+"px";
+  }
   function openPersonModal(id){
     editingId = id||null;
     var p = id ? personOf(id) : null;
@@ -413,7 +417,9 @@
     document.getElementById("pmName").value = p ? p.name : "";
     document.getElementById("pmYear").value = p ? p.sortYear : "";
     document.getElementById("pmYears").value = p ? (p.years||"") : "";
-    document.getElementById("pmBio").value = p ? (p.bio||"") : "";
+    var bioEl=document.getElementById("pmBio");
+    bioEl.value = p ? (p.bio||"") : "";
+    autoGrow(bioEl);
     renderCatOptions(p ? p.catId : (STATE.categories[0]&&STATE.categories[0].id));
     document.getElementById("pmNewCat").value="";
     document.getElementById("pmNewCat").style.display="none";
@@ -438,6 +444,7 @@
       if(this.value==="__new__"){ newField.style.display="block"; newField.focus(); }
       else newField.style.display="none";
     });
+    document.getElementById("pmBio").addEventListener("input", function(){ autoGrow(this); });
     document.getElementById("pmCancel").addEventListener("click", closePersonModal);
     document.getElementById("pmClose").addEventListener("click", closePersonModal);
     document.getElementById("addPersonBtn").addEventListener("click", function(){ openPersonModal(null); });

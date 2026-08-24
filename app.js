@@ -601,11 +601,27 @@
     if(!STATE.categories.length){ wrap.innerHTML='<div class="cat-empty">등록된 분야가 없습니다.</div>'; return; }
     wrap.innerHTML = STATE.categories.map(function(c){
       var count = STATE.people.filter(function(p){ return p.catId===c.id; }).length;
-      return '<div class="cat-row" data-id="'+c.id+'">'+
-        '<span class="dot" style="background:'+c.color+'"></span>'+
-        '<input type="text" class="cat-name-input" value="'+escapeHtml(c.name)+'">'+
-        '<span class="cat-count">'+count+'명</span>'+
-        '<button type="button" class="mini-btn danger cat-del" data-id="'+c.id+'"'+(count>0?' disabled title="인물이 있어 삭제할 수 없어요"':'')+'>삭제</button>'+
+      var subs = c.subs||[];
+      var subHtml = subs.map(function(s){
+        var scount = STATE.people.filter(function(p){ return p.catId===c.id && p.subId===s.id; }).length;
+        return '<div class="sub-row" data-cat="'+c.id+'" data-sub="'+s.id+'">'+
+          '<input type="text" class="sub-name-input" value="'+escapeHtml(s.name)+'">'+
+          '<span class="cat-count">'+scount+'명</span>'+
+          '<button type="button" class="mini-btn danger sub-del" data-cat="'+c.id+'" data-sub="'+s.id+'"'+(scount>0?' disabled title="인물이 있어 삭제할 수 없어요"':'')+'>삭제</button>'+
+        '</div>';
+      }).join("");
+      subHtml += '<div class="sub-add-row" data-cat="'+c.id+'">'+
+        '<input type="text" class="sub-new-input" placeholder="새 서브 카테고리">'+
+        '<button type="button" class="mini-btn sub-add-btn" data-cat="'+c.id+'">+ 추가</button>'+
+      '</div>';
+      return '<div class="cat-block">'+
+        '<div class="cat-row" data-id="'+c.id+'">'+
+          '<span class="dot" style="background:'+c.color+'"></span>'+
+          '<input type="text" class="cat-name-input" value="'+escapeHtml(c.name)+'">'+
+          '<span class="cat-count">'+count+'명</span>'+
+          '<button type="button" class="mini-btn danger cat-del" data-id="'+c.id+'"'+(count>0?' disabled title="인물이 있어 삭제할 수 없어요"':'')+'>삭제</button>'+
+        '</div>'+
+        '<div class="sub-list">'+subHtml+'</div>'+
       '</div>';
     }).join("");
     wrap.querySelectorAll(".cat-del").forEach(function(btn){
@@ -616,6 +632,29 @@
         if(!confirm('"'+c.name+'" 분야를 삭제할까요?')) return;
         STATE.categories = STATE.categories.filter(function(x){ return x.id!==id; });
         if(activeCatIds){ var idx=activeCatIds.indexOf(id); if(idx>-1) activeCatIds.splice(idx,1); }
+        commit();
+        renderCatList();
+      });
+    });
+    wrap.querySelectorAll(".sub-del").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var catId=btn.getAttribute("data-cat"), subId=btn.getAttribute("data-sub");
+        var c=catOf(catId);
+        if(!c || btn.disabled) return;
+        var s=findSub(catId,subId);
+        if(!confirm('"'+(s?s.name:"")+'" 서브 카테고리를 삭제할까요?')) return;
+        c.subs = (c.subs||[]).filter(function(x){ return x.id!==subId; });
+        commit();
+        renderCatList();
+      });
+    });
+    wrap.querySelectorAll(".sub-add-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var catId=btn.getAttribute("data-cat");
+        var input=btn.parentNode.querySelector(".sub-new-input");
+        var name=input.value.trim();
+        if(!name) return;
+        ensureSub(catId, name);
         commit();
         renderCatList();
       });
@@ -647,7 +686,15 @@
         var c=catOf(id);
         if(c) c.name=name;
       });
-      if(!ok){ alert("분야 이름은 비워둘 수 없어요."); return; }
+      document.querySelectorAll("#catList .sub-row").forEach(function(row){
+        var catId=row.getAttribute("data-cat"), subId=row.getAttribute("data-sub");
+        var input=row.querySelector(".sub-name-input");
+        var name=input.value.trim();
+        if(!name){ ok=false; return; }
+        var s=findSub(catId,subId);
+        if(s) s.name=name;
+      });
+      if(!ok){ alert("분야·서브 카테고리 이름은 비워둘 수 없어요."); return; }
       closeCatModal();
       commit();
     });

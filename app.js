@@ -135,8 +135,10 @@
 
     var width = MARGIN_L + span*PX_PER_YEAR + MARGIN_R;
     activePeople.forEach(function(p){ if(pos[p.id].x+MARGIN_R > width) width = pos[p.id].x+MARGIN_R; });
+    var scrollEl = document.getElementById("stageScroll");
+    var minCanvasWidth = (scrollEl && scrollEl.clientWidth) ? scrollEl.clientWidth : 900;
 
-    return {pos:pos, minY:minY, maxY:maxY, width:Math.max(width,900), height:height, activeCats:activeCats, laneTop:laneTop, rowCountByCat:rowCountByCat};
+    return {pos:pos, minY:minY, maxY:maxY, width:Math.max(width,minCanvasWidth), height:height, activeCats:activeCats, laneTop:laneTop, rowCountByCat:rowCountByCat};
   }
 
   function fmtYear(y){
@@ -217,7 +219,7 @@
   function renderStage(){
     var layout = computeLayout();
     stage.setAttribute("viewBox","0 0 "+layout.width+" "+layout.height);
-    stage.style.minWidth = layout.width+"px";
+    stage.style.width = layout.width+"px";
     stage.style.height = layout.height+"px";
     stage.innerHTML="";
     nodeEls={}; edgeEls=[];

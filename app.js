@@ -15,17 +15,23 @@
   function defaultState(){
     return {
       categories:[
-        {id:"phil", name:"철학", color:PALETTE[0]},
-        {id:"music", name:"음악", color:PALETTE[1]},
-        {id:"history", name:"역사", color:PALETTE[2]},
-        {id:"lit", name:"문학", color:PALETTE[3]}
+        {id:"phil", name:"철학", color:PALETTE[0], subs:[]},
+        {id:"music", name:"음악", color:PALETTE[1], subs:[]},
+        {id:"history", name:"역사", color:PALETTE[2], subs:[]},
+        {id:"lit", name:"문학", color:PALETTE[3], subs:[]}
       ],
       people:[],
       relationships:[]
     };
   }
 
-  var STATE = loadLocal() || defaultState();
+  function normalizeState(s){
+    s.categories.forEach(function(c){ if(!c.subs) c.subs=[]; });
+    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; });
+    return s;
+  }
+
+  var STATE = normalizeState(loadLocal() || defaultState());
   var activeCatIds = null; // null = all on
   var currentId = null;
 
@@ -55,9 +61,28 @@
     var found = null;
     STATE.categories.forEach(function(c){ if(c.name===name) found=c; });
     if(found) return found;
-    var c = {id:uid("cat"), name:name, color:PALETTE[STATE.categories.length % PALETTE.length]};
+    var c = {id:uid("cat"), name:name, color:PALETTE[STATE.categories.length % PALETTE.length], subs:[]};
     STATE.categories.push(c);
     return c;
+  }
+  function ensureSub(catId, name){
+    name = (name||"").trim();
+    var c = catOf(catId);
+    if(!c || !name) return null;
+    if(!c.subs) c.subs=[];
+    var found = null;
+    c.subs.forEach(function(s){ if(s.name===name) found=s; });
+    if(found) return found;
+    var s = {id:uid("sub"), name:name};
+    c.subs.push(s);
+    return s;
+  }
+  function findSub(catId, subId){
+    var c = catOf(catId);
+    if(!c || !c.subs) return null;
+    var found=null;
+    c.subs.forEach(function(s){ if(s.id===subId) found=s; });
+    return found;
   }
 
   // ---------------- layout ----------------
@@ -330,7 +355,8 @@
 
     var html="";
     html+='<button class="panel-close" id="panelClose" aria-label="닫기">✕</button>';
-    html+='<span class="badge"><span class="dot" style="background:'+color+'"></span>'+escapeHtml(c?c.name:"")+'</span>';
+    var sub = p.subId ? findSub(p.catId, p.subId) : null;
+    html+='<span class="badge"><span class="dot" style="background:'+color+'"></span>'+escapeHtml(c?c.name:"")+(sub?(' · '+escapeHtml(sub.name)):'')+'</span>';
     html+='<div class="panel-actions"><button class="mini-btn" id="editPersonBtn">수정</button><button class="mini-btn danger" id="deletePersonBtn">삭제</button></div>';
     html+='<h2>'+escapeHtml(p.name)+'</h2>';
     html+='<div class="years">'+escapeHtml(yearsLabel(p))+'</div>';
@@ -445,9 +471,13 @@
     var bioEl=document.getElementById("pmBio");
     bioEl.value = p ? (p.bio||"") : "";
     autoGrow(bioEl);
-    renderCatOptions(p ? p.catId : (STATE.categories[0]&&STATE.categories[0].id));
+    var initCatId = p ? p.catId : (STATE.categories[0]&&STATE.categories[0].id);
+    renderCatOptions(initCatId);
     document.getElementById("pmNewCat").value="";
     document.getElementById("pmNewCat").style.display="none";
+    renderSubOptions(initCatId, p ? p.subId : null);
+    document.getElementById("pmNewSub").value="";
+    document.getElementById("pmNewSub").style.display="none";
     modal.classList.add("open");
     modal.setAttribute("aria-hidden","false");
     document.getElementById("pmName").focus();
@@ -455,6 +485,14 @@
   function renderCatOptions(selectedId){
     var sel=document.getElementById("pmCat");
     sel.innerHTML = STATE.categories.map(function(c){ return '<option value="'+c.id+'"'+(c.id===selectedId?" selected":"")+'>'+escapeHtml(c.name)+'</option>'; }).join("") + '<option value="__new__">+ 새 분야 추가</option>';
+  }
+  function renderSubOptions(catId, selectedSubId){
+    var sel=document.getElementById("pmSub");
+    var c = catId==="__new__" ? null : catOf(catId);
+    var subs = (c && c.subs) ? c.subs : [];
+    sel.innerHTML = '<option value="">(없음)</option>' +
+      subs.map(function(s){ return '<option value="'+s.id+'"'+(s.id===selectedSubId?" selected":"")+'>'+escapeHtml(s.name)+'</option>'; }).join("") +
+      '<option value="__new__">+ 새 서브 카테고리 추가</option>';
   }
   function closePersonModal(){
     var modal=document.getElementById("personModal");
@@ -466,6 +504,14 @@
   function initModal(){
     document.getElementById("pmCat").addEventListener("change",function(){
       var newField=document.getElementById("pmNewCat");
+      if(this.value==="__new__"){ newField.style.display="block"; newField.focus(); }
+      else newField.style.display="none";
+      renderSubOptions(this.value, null);
+      document.getElementById("pmNewSub").value="";
+      document.getElementById("pmNewSub").style.display="none";
+    });
+    document.getElementById("pmSub").addEventListener("change",function(){
+      var newField=document.getElementById("pmNewSub");
       if(this.value==="__new__"){ newField.style.display="block"; newField.focus(); }
       else newField.style.display="none";
     });
@@ -492,8 +538,16 @@
         if(!newName){ alert("새 분야 이름을 입력해주세요."); return; }
         catId = ensureCategory(newName).id;
       }
+      var subSel = document.getElementById("pmSub").value;
+      var subId = null;
+      if(subSel==="__new__"){
+        var newSubName = document.getElementById("pmNewSub").value.trim();
+        if(newSubName) subId = ensureSub(catId, newSubName).id;
+      } else if(subSel!==""){
+        subId = subSel;
+      }
       var fields = {
-        name:name, bio:bio, catId:catId,
+        name:name, bio:bio, catId:catId, subId:subId,
         sortYear:birth.y, birthMonth:birth.m, birthDay:birth.d,
         deathYear: death?death.y:null, deathMonth: death?death.m:null, deathDay: death?death.d:null
       };
@@ -615,7 +669,7 @@
   window.SEONGJWA = {
     get: function(){ return STATE; },
     replace: function(newState){
-      STATE = newState;
+      STATE = normalizeState(newState);
       activeCatIds = null;
       clearSelectionSilent();
       persistLocal();

@@ -235,6 +235,13 @@
     padding:26px; width:840px; max-width:100%; max-height:88vh; overflow-y:auto;
   }
   .modal-card h2{font-family:"Gowun Batang",serif; font-size:1.2rem; font-weight:700; margin:0 0 18px;}
+  .cat-card{width:440px;}
+  .cat-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-faint);}
+  .cat-row:last-child{border-bottom:none;}
+  .cat-row .dot{width:12px; height:12px; border-radius:50%; flex:none;}
+  .cat-name-input{flex:1; min-width:0;}
+  .cat-count{font-family:"JetBrains Mono",monospace; font-size:.72rem; color:var(--text-muted); white-space:nowrap;}
+  .cat-empty{color:var(--text-muted); font-size:.85rem; padding:6px 0;}
   .field{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
   .field label{font-size:.78rem; color:var(--text-muted);}
   .field-row{display:flex; gap:10px;}
@@ -271,6 +278,7 @@
   </div>
   <div class="topbar-right">
     <nav class="legend" id="legend" aria-label="분야 필터"></nav>
+    <button class="btn ghost" id="manageCatBtn">⚙ 분야</button>
     <button class="btn primary" id="addPersonBtn">+ 인물</button>
     <button class="btn ghost" id="themeToggle" aria-label="화면 모드 전환">🌙</button>
     <span class="auth" id="authArea" hidden></span>
@@ -332,6 +340,18 @@
         <button type="submit" class="btn primary">저장</button>
       </div>
     </form>
+  </div>
+</div>
+
+<div class="modal" id="catModal" aria-hidden="true">
+  <div class="modal-card cat-card">
+    <button type="button" class="panel-close" id="catClose" aria-label="닫기">✕</button>
+    <h2>분야 관리</h2>
+    <div id="catList"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="catCancel">닫기</button>
+      <button type="button" class="btn primary" id="catSaveBtn">저장</button>
+    </div>
   </div>
 </div>
 

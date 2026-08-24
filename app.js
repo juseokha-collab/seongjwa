@@ -474,6 +474,64 @@
     });
   }
 
+  // ---------------- category management ----------------
+  function renderCatList(){
+    var wrap=document.getElementById("catList");
+    if(!STATE.categories.length){ wrap.innerHTML='<div class="cat-empty">등록된 분야가 없습니다.</div>'; return; }
+    wrap.innerHTML = STATE.categories.map(function(c){
+      var count = STATE.people.filter(function(p){ return p.catId===c.id; }).length;
+      return '<div class="cat-row" data-id="'+c.id+'">'+
+        '<span class="dot" style="background:'+c.color+'"></span>'+
+        '<input type="text" class="cat-name-input" value="'+escapeHtml(c.name)+'">'+
+        '<span class="cat-count">'+count+'명</span>'+
+        '<button type="button" class="mini-btn danger cat-del" data-id="'+c.id+'"'+(count>0?' disabled title="인물이 있어 삭제할 수 없어요"':'')+'>삭제</button>'+
+      '</div>';
+    }).join("");
+    wrap.querySelectorAll(".cat-del").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var id=btn.getAttribute("data-id");
+        var c=catOf(id);
+        if(!c || btn.disabled) return;
+        if(!confirm('"'+c.name+'" 분야를 삭제할까요?')) return;
+        STATE.categories = STATE.categories.filter(function(x){ return x.id!==id; });
+        if(activeCatIds){ var idx=activeCatIds.indexOf(id); if(idx>-1) activeCatIds.splice(idx,1); }
+        commit();
+        renderCatList();
+      });
+    });
+  }
+  function openCatModal(){
+    renderCatList();
+    var modal=document.getElementById("catModal");
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden","false");
+  }
+  function closeCatModal(){
+    var modal=document.getElementById("catModal");
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden","true");
+  }
+  function initCatModal(){
+    document.getElementById("manageCatBtn").addEventListener("click", openCatModal);
+    document.getElementById("catClose").addEventListener("click", closeCatModal);
+    document.getElementById("catCancel").addEventListener("click", closeCatModal);
+    document.getElementById("catSaveBtn").addEventListener("click", function(){
+      var rows=document.querySelectorAll("#catList .cat-row");
+      var ok=true;
+      rows.forEach(function(row){
+        var id=row.getAttribute("data-id");
+        var input=row.querySelector(".cat-name-input");
+        var name=input.value.trim();
+        if(!name){ ok=false; return; }
+        var c=catOf(id);
+        if(c) c.name=name;
+      });
+      if(!ok){ alert("분야 이름은 비워둘 수 없어요."); return; }
+      closeCatModal();
+      commit();
+    });
+  }
+
   // ---------------- theme ----------------
   function initTheme(){
     var btn=document.getElementById("themeToggle");
@@ -513,6 +571,7 @@
     document.getElementById("emptyAddBtn").addEventListener("click", function(){ openPersonModal(null); });
 
     initModal();
+    initCatModal();
     initSearch();
     initTheme();
     renderAll();

@@ -782,5 +782,7 @@
   function clearSelectionSilent(){
     currentId=null;
     if(stage) stage.classList.remove("selected-fade");
+    var panel=document.getElementById("panel");
+    if(panel){ panel.classList.remove("open"); panel.setAttribute("aria-hidden","true"); }
   }
 })();

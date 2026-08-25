@@ -271,7 +271,7 @@
 
     var defs=el("defs",{});
     var marker=el("marker",{id:"arrow",viewBox:"0 0 10 10",refX:"8",refY:"5",markerWidth:"7",markerHeight:"7",orient:"auto-start-reverse"});
-    marker.appendChild(el("path",{d:"M0,0 L10,5 L0,10 z",fill:"var(--line-mid)"}));
+    marker.appendChild(el("path",{d:"M0,0 L10,5 L0,10 z",fill:"var(--edge-ink)"}));
     defs.appendChild(marker);
     var glow=el("filter",{id:"starglow",x:"-60%",y:"-60%",width:"220%",height:"220%"});
     glow.innerHTML='<feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>';

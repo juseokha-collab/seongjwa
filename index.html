@@ -31,6 +31,7 @@
     --star-glow:#f2d98a;
     --focus-ring:#f2d98a;
     --star-dust:#4b5178;
+    --edge-ink:#5c649c;
   }
 
   :root[data-theme="light"]{
@@ -47,6 +48,7 @@
     --star-glow:#b9822a;
     --focus-ring:#b9822a;
     --star-dust:#c7cce4;
+    --edge-ink:#8f96c4;
   }
 
   *{box-sizing:border-box;}
@@ -134,18 +136,20 @@
   #stageScroll{flex:1 1 auto; overflow-x:auto; overflow-y:hidden; position:relative;}
   #stage{display:block;}
 
-  .node{cursor:pointer;}
+  .node{cursor:pointer; outline:none;}
   .node circle.core{transition:r .15s ease, opacity .2s ease;}
-  .node text{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:var(--text-primary); pointer-events:none; transition:opacity .2s ease;}
+  .node text{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:var(--text-primary); pointer-events:none; transition:opacity .2s ease, font-weight .15s ease;}
   .node text.years{font-family:Consolas,"JetBrains Mono",monospace; font-size:9px; fill:var(--text-muted);}
   .node:focus-visible circle.ring{stroke:var(--focus-ring); stroke-width:2;}
+  .node.active-node text{font-weight:700;}
+  .node.active-node text.years{fill:var(--text-primary);}
 
   .selected-fade .node:not(.active-node) circle.core,
   .selected-fade .node:not(.active-node) text{opacity:.18;}
   .selected-fade .edge:not(.active-edge){opacity:.05;}
 
-  .edge{fill:none; stroke:var(--line-mid); transition:opacity .2s ease, stroke .2s ease;}
-  .edge.active-edge{stroke:var(--star-glow);}
+  .edge{fill:none; stroke:var(--edge-ink); stroke-width:1.6; transition:opacity .2s ease, stroke .2s ease, stroke-width .2s ease;}
+  .edge.active-edge{stroke:var(--star-glow); stroke-width:2.2;}
 
   .grid-line{stroke:var(--line-faint); stroke-dasharray:2 5;}
   .lane-divider{stroke:var(--line-faint); opacity:.7;}

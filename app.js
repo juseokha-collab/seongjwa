@@ -771,9 +771,14 @@
   window.SEONGJWA = {
     get: function(){ return STATE; },
     replace: function(newState){
+      var keepId = currentId;
       STATE = normalizeState(newState);
       activeCatIds = null;
-      clearSelectionSilent();
+      if(keepId && personOf(keepId)){
+        currentId = keepId; // keep the open panel (e.g. random spotlight) alive across a cloud sync
+      } else {
+        clearSelectionSilent();
+      }
       persistLocal();
       renderAll();
     },

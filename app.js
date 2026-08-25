@@ -407,10 +407,13 @@
       var other = personOf(otherId);
       if(!other) return;
       var oc = catOf(other.catId);
+      var typeOptions = STATE.relTypes.indexOf(r.type)>-1 ? STATE.relTypes : STATE.relTypes.concat([r.type]);
       html+='<li class="rel-item" data-jump="'+other.id+'">'+
         '<span class="dot" style="background:'+(oc?oc.color:"#9ba1c4")+'"></span>'+
         '<span class="rel-name">'+escapeHtml(other.name)+'</span>'+
-        '<span class="rel-type">'+escapeHtml(r.type)+'</span>'+
+        '<select class="rel-type-select" data-rid="'+r.id+'" aria-label="관계 유형 수정">'+
+          typeOptions.map(function(t){ return '<option value="'+escapeHtml(t)+'"'+(t===r.type?" selected":"")+'>'+escapeHtml(t)+'</option>'; }).join("")+
+        '</select>'+
         '<button class="rel-del" data-rid="'+r.id+'" aria-label="관계 삭제">✕</button>'+
       '</li>';
     });
@@ -453,7 +456,7 @@
     });
     body.querySelectorAll(".rel-item").forEach(function(item){
       item.addEventListener("click",function(e){
-        if(e.target.closest(".rel-del")) return;
+        if(e.target.closest(".rel-del") || e.target.closest(".rel-type-select")) return;
         selectNode(item.getAttribute("data-jump"));
       });
     });
@@ -463,6 +466,14 @@
         var rid=btn.getAttribute("data-rid");
         STATE.relationships = STATE.relationships.filter(function(r){ return r.id!==rid; });
         commit();
+      });
+    });
+    body.querySelectorAll(".rel-type-select").forEach(function(sel){
+      sel.addEventListener("click",function(e){ e.stopPropagation(); });
+      sel.addEventListener("change",function(){
+        var rid=sel.getAttribute("data-rid");
+        var r = STATE.relationships.filter(function(x){ return x.id===rid; })[0];
+        if(r){ r.type = sel.value; commit(); }
       });
     });
     var relTypeSel=document.getElementById("relType");

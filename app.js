@@ -188,6 +188,33 @@
     return s;
   }
 
+  // ---------------- hover tooltip ----------------
+  function showTooltip(p, evt){
+    var tt=document.getElementById("nodeTooltip");
+    var c = catOf(p.catId);
+    var sub = p.subId ? findSub(p.catId, p.subId) : null;
+    var meta = panelYearsLabel(p) + (c ? (" · "+c.name+(sub?(" · "+sub.name):"")) : "");
+    tt.innerHTML =
+      '<div class="tt-name">'+escapeHtml(p.name)+'</div>'+
+      '<div class="tt-meta">'+escapeHtml(meta)+'</div>'+
+      (p.bio ? '<div class="tt-bio">'+escapeHtml(p.bio)+'</div>' : "");
+    tt.style.display="block";
+    positionTooltip(evt);
+  }
+  function positionTooltip(evt){
+    var tt=document.getElementById("nodeTooltip");
+    var pad=16;
+    var x=evt.clientX+pad, y=evt.clientY+pad;
+    var rect=tt.getBoundingClientRect();
+    if(x+rect.width > window.innerWidth-8) x = evt.clientX - rect.width - pad;
+    if(y+rect.height > window.innerHeight-8) y = evt.clientY - rect.height - pad;
+    tt.style.left=Math.max(8,x)+"px";
+    tt.style.top=Math.max(8,y)+"px";
+  }
+  function hideTooltip(){
+    document.getElementById("nodeTooltip").style.display="none";
+  }
+
   // ---------------- svg render ----------------
   var svgNS = "http://www.w3.org/2000/svg";
   function el(tag,attrs){
@@ -330,6 +357,9 @@
       g.appendChild(yrs);
       g.addEventListener("click", function(id){ return function(e){ e.stopPropagation(); selectNode(id); }; }(p.id));
       g.addEventListener("keydown", function(id){ return function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); selectNode(id);} }; }(p.id));
+      g.addEventListener("mouseenter", function(pp){ return function(e){ showTooltip(pp,e); }; }(p));
+      g.addEventListener("mousemove", positionTooltip);
+      g.addEventListener("mouseleave", hideTooltip);
       nodeLayer.appendChild(g);
       nodeEls[p.id]=g;
     });
@@ -364,6 +394,7 @@
   }
 
   function selectNode(id){
+    hideTooltip();
     currentId=id;
     highlightSelection(id);
     renderPanel(id);

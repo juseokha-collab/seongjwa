@@ -169,6 +169,16 @@
   }
   .line-legend .row{display:flex; align-items:center; gap:8px;}
 
+  /* ---------- node hover tooltip ---------- */
+  .node-tooltip{
+    position:fixed; z-index:60; display:none; pointer-events:none;
+    max-width:260px; background:var(--bg-panel); border:1px solid var(--line-mid);
+    border-radius:10px; padding:10px 12px; box-shadow:0 10px 28px rgba(0,0,0,.4);
+  }
+  .tt-name{font-family:"Gowun Batang",serif; font-weight:700; font-size:.95rem; color:var(--text-primary); margin-bottom:2px;}
+  .tt-meta{font-family:"JetBrains Mono",monospace; font-size:.7rem; color:var(--text-muted); margin-bottom:6px;}
+  .tt-bio{font-size:.8rem; color:var(--text-secondary); line-height:1.5; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+
   /* ---------- detail panel ---------- */
   .panel{
     position:fixed; top:0; right:0; height:100%; width:380px; max-width:92vw;
@@ -325,6 +335,8 @@
 </div>
 
 <p class="footer-note">역사 · 철학 · 음악 등 내가 학습한 인물을 시대와 관계로 기록하는 개인 성좌 지도</p>
+
+<div class="node-tooltip" id="nodeTooltip"></div>
 
 <div class="panel" id="panel" aria-hidden="true">
   <div id="panelBody"></div>

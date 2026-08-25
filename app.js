@@ -297,8 +297,12 @@
       var midX=(posA.x+posB.x)/2, midY=(posA.y+posB.y)/2;
       var dist=Math.abs(posB.x-posA.x);
       var bow=Math.max(18, Math.min(60, dist*0.18));
-      var ctrlY=midY-bow;
-      var attrs={class:"edge", d:"M"+posA.x+","+posA.y+" Q"+midX+","+ctrlY+" "+posB.x+","+posB.y, "stroke-linecap":"round"};
+      var ctrlX=midX, ctrlY=midY-bow;
+      var tdx=posB.x-ctrlX, tdy=posB.y-ctrlY;
+      var tlen=Math.sqrt(tdx*tdx+tdy*tdy)||1;
+      var NODE_R=7;
+      var endX=posB.x-tdx/tlen*NODE_R, endY=posB.y-tdy/tlen*NODE_R;
+      var attrs={class:"edge", d:"M"+posA.x+","+posA.y+" Q"+ctrlX+","+ctrlY+" "+endX+","+endY, "stroke-linecap":"round"};
       if(dash) attrs["stroke-dasharray"]=dash;
       if(r.type!=="교류") attrs["marker-end"]="url(#arrow)";
       var line=el("path",attrs);

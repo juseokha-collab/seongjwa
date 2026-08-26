@@ -7,7 +7,16 @@
   var LANE_PAD = 22;
   var PX_PER_YEAR = 2.4;
   var MARGIN_L = 90, MARGIN_R = 90, MARGIN_TOP = 60, MARGIN_BOTTOM = 40;
-  var MIN_GAP = 46;
+  var LABEL_PAD = 14;
+  var NODE_LABEL_FONT = "Consolas,'JetBrains Mono',monospace";
+  var measureCtx = document.createElement("canvas").getContext("2d");
+  function labelHalfWidth(p){
+    measureCtx.font = "700 12px "+NODE_LABEL_FONT;
+    var nameW = measureCtx.measureText(p.name).width;
+    measureCtx.font = "9px "+NODE_LABEL_FONT;
+    var yearW = measureCtx.measureText(yearsLabel(p)).width;
+    return Math.max(nameW, yearW)/2;
+  }
 
   var LS_KEY = "seongjwa.state.v1";
 
@@ -115,14 +124,16 @@
     activeCats.forEach(function(c){
       var members = activePeople.filter(function(p){ return p.catId===c.id; })
         .sort(function(a,b){ return xOf[a.id]-xOf[b.id]; });
-      var rowEnds = [];
+      var rowEnds = []; // {x, hw} of the last-placed label in each row
       members.forEach(function(p){
         var x = xOf[p.id];
+        var hw = labelHalfWidth(p);
         var placed = false;
         for(var r=0;r<rowEnds.length;r++){
-          if(x - rowEnds[r] >= MIN_GAP){ subRowOf[p.id]=r; rowEnds[r]=x; placed=true; break; }
+          var need = rowEnds[r].hw + hw + LABEL_PAD;
+          if(x - rowEnds[r].x >= need){ subRowOf[p.id]=r; rowEnds[r]={x:x,hw:hw}; placed=true; break; }
         }
-        if(!placed){ subRowOf[p.id]=rowEnds.length; rowEnds.push(x); }
+        if(!placed){ subRowOf[p.id]=rowEnds.length; rowEnds.push({x:x,hw:hw}); }
       });
       rowCountByCat[c.id] = Math.max(1, rowEnds.length);
     });

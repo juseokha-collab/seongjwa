@@ -102,6 +102,11 @@
     c.subs.forEach(function(s){ if(s.id===subId) found=s; });
     return found;
   }
+  function personColor(p){
+    var c = catOf(p.catId);
+    var sub = p.subId ? findSub(p.catId, p.subId) : null;
+    return (sub && sub.color) ? sub.color : (c ? c.color : "#9ba1c4");
+  }
 
   // ---------------- layout ----------------
   function computeLayout(){
@@ -356,7 +361,7 @@
       var pos = layout.pos[p.id];
       if(!pos) return;
       var c = catOf(p.catId);
-      var color = c? c.color : "#9ba1c4";
+      var color = personColor(p);
       var g=el("g",{class:"node", tabindex:"0", role:"button", "aria-label":p.name+", "+yearsLabel(p)+(c?(", "+c.name):""), "data-id":p.id});
       g.appendChild(el("circle",{class:"ring", cx:pos.x, cy:pos.y, r:11, fill:"none", stroke:"transparent"}));
       g.appendChild(el("circle",{class:"core", cx:pos.x, cy:pos.y, r:5.5, fill:color, filter:"url(#starglow)"}));
@@ -434,7 +439,7 @@
     var p=personOf(id);
     if(!p){ clearSelection(); return; }
     var c=catOf(p.catId);
-    var color=c?c.color:"#9ba1c4";
+    var color=personColor(p);
     var relLines = STATE.relationships.filter(function(r){ return r.a===id || r.b===id; });
 
     var html="";
@@ -452,10 +457,9 @@
       var otherId = r.a===id ? r.b : r.a;
       var other = personOf(otherId);
       if(!other) return;
-      var oc = catOf(other.catId);
       var typeOptions = STATE.relTypes.indexOf(r.type)>-1 ? STATE.relTypes : STATE.relTypes.concat([r.type]);
       html+='<li class="rel-item" data-jump="'+other.id+'">'+
-        '<span class="dot" style="background:'+(oc?oc.color:"#9ba1c4")+'"></span>'+
+        '<span class="dot" style="background:'+personColor(other)+'"></span>'+
         '<span class="rel-name">'+escapeHtml(other.name)+'</span>'+
         '<select class="rel-type-select" data-rid="'+r.id+'" aria-label="관계 유형 수정">'+
           typeOptions.map(function(t){ return '<option value="'+escapeHtml(t)+'"'+(t===r.type?" selected":"")+'>'+escapeHtml(t)+'</option>'; }).join("")+
@@ -683,8 +687,10 @@
       var subHtml = subs.map(function(s){
         var scount = STATE.people.filter(function(p){ return p.catId===c.id && p.subId===s.id; }).length;
         return '<div class="sub-row" data-cat="'+c.id+'" data-sub="'+s.id+'">'+
+          '<input type="color" class="sub-color-input" data-cat="'+c.id+'" data-sub="'+s.id+'" value="'+(s.color||c.color)+'" title="'+(s.color?"이 서브 카테고리만의 색":"기본은 분야 색을 그대로 씀")+'">'+
           '<input type="text" class="sub-name-input" value="'+escapeHtml(s.name)+'">'+
           '<span class="cat-count">'+scount+'명</span>'+
+          (s.color?'<button type="button" class="mini-btn sub-color-reset" data-cat="'+c.id+'" data-sub="'+s.id+'" title="기본색으로">↺</button>':'')+
           '<button type="button" class="mini-btn danger sub-del" data-cat="'+c.id+'" data-sub="'+s.id+'"'+(scount>0?' disabled title="인물이 있어 삭제할 수 없어요"':'')+'>삭제</button>'+
         '</div>';
       }).join("");
@@ -735,6 +741,20 @@
         ensureSub(catId, name);
         commit();
         renderCatList();
+      });
+    });
+    wrap.querySelectorAll(".sub-color-input").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        var catId=inp.getAttribute("data-cat"), subId=inp.getAttribute("data-sub");
+        var s=findSub(catId,subId);
+        if(s){ s.color=inp.value; commit(); renderCatList(); }
+      });
+    });
+    wrap.querySelectorAll(".sub-color-reset").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var catId=btn.getAttribute("data-cat"), subId=btn.getAttribute("data-sub");
+        var s=findSub(catId,subId);
+        if(s){ s.color=null; commit(); renderCatList(); }
       });
     });
   }

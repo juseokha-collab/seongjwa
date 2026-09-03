@@ -140,11 +140,14 @@
     background:var(--bg-deep); border-bottom:1px solid var(--line-faint);
   }
   .year-tick{
-    position:absolute; top:9px; transform:translateX(-50%);
-    font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; color:var(--text-secondary); white-space:nowrap;
-    cursor:ew-resize; user-select:none; touch-action:none; padding:2px 5px; border-radius:5px;
+    position:absolute; top:6px; transform:translateX(-50%);
+    font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; white-space:nowrap;
+    color:#ffffff; background:#6b7280; padding:4px 11px; border-radius:999px;
+    cursor:ew-resize; user-select:none; touch-action:none;
+    box-shadow:0 1px 3px rgba(0,0,0,.3);
   }
-  .year-tick:hover{background:var(--bg-elevated); color:var(--text-primary);}
+  .year-tick:hover{background:#7d8695;}
+  .year-tick:active{background:var(--gold); color:#1a1206;}
   #stage{display:block; flex:none;}
 
   .node{cursor:grab; outline:none; touch-action:none;}

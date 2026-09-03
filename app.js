@@ -282,7 +282,7 @@
 
   var stage, laneCol, emptyHint;
   var nodeEls={}, edgeEls=[];
-  var dragState=null, justDraggedId=null, yearDragState=null;
+  var dragState=null, justDraggedId=null;
   function svgPoint(e){
     var pt = stage.createSVGPoint();
     pt.x=e.clientX; pt.y=e.clientY;
@@ -350,34 +350,32 @@
       t.textContent=fmtYear(tick.year);
       var prevX = i>0 ? layout.ticks[i-1].x : null;
       var nextX = i<layout.ticks.length-1 ? layout.ticks[i+1].x : null;
-      t.addEventListener("pointerdown", function(year,el,lo,hi){ return function(e){
+      t.addEventListener("pointerdown", function(year,el,lo,hi,startX){ return function(e){
+        e.preventDefault();
         e.stopPropagation();
-        yearDragState = {year:year, startClientX:e.clientX, startX:tick.x, el:el, moved:false, lo:lo, hi:hi};
-        try{ el.setPointerCapture(e.pointerId); }catch(err){}
-      }; }(tick.year, t, prevX, nextX));
-      t.addEventListener("pointermove", function(el){ return function(e){
-        if(!yearDragState || yearDragState.el!==el) return;
-        var dx = e.clientX - yearDragState.startClientX;
-        if(Math.abs(dx)>3) yearDragState.moved=true;
-        if(yearDragState.moved){
-          var nx = yearDragState.startX+dx;
-          if(yearDragState.lo!=null) nx = Math.max(nx, yearDragState.lo+MIN_ANCHOR_GAP);
-          if(yearDragState.hi!=null) nx = Math.min(nx, yearDragState.hi-MIN_ANCHOR_GAP);
-          el.style.left = nx+"px";
+        var st = {startClientX:e.clientX, moved:false};
+        function clamp(nx){
+          if(lo!=null) nx = Math.max(nx, lo+MIN_ANCHOR_GAP);
+          if(hi!=null) nx = Math.min(nx, hi-MIN_ANCHOR_GAP);
+          return nx;
         }
-      }; }(t));
-      t.addEventListener("pointerup", function(el){ return function(e){
-        if(!yearDragState || yearDragState.el!==el) return;
-        if(yearDragState.moved){
-          var dx = e.clientX - yearDragState.startClientX;
-          var nx = yearDragState.startX+dx;
-          if(yearDragState.lo!=null) nx = Math.max(nx, yearDragState.lo+MIN_ANCHOR_GAP);
-          if(yearDragState.hi!=null) nx = Math.min(nx, yearDragState.hi-MIN_ANCHOR_GAP);
-          STATE.timeAnchors[String(yearDragState.year)] = nx;
-          commit();
+        function onMove(ev){
+          var dx = ev.clientX - st.startClientX;
+          if(Math.abs(dx)>3) st.moved=true;
+          if(st.moved) el.style.left = clamp(startX+dx)+"px";
         }
-        yearDragState = null;
-      }; }(t));
+        function onUp(ev){
+          document.removeEventListener("pointermove", onMove);
+          document.removeEventListener("pointerup", onUp);
+          if(st.moved){
+            var dx = ev.clientX - st.startClientX;
+            STATE.timeAnchors[String(year)] = clamp(startX+dx);
+            commit();
+          }
+        }
+        document.addEventListener("pointermove", onMove);
+        document.addEventListener("pointerup", onUp);
+      }; }(tick.year, t, prevX, nextX, tick.x));
       yearRow.appendChild(t);
     });
 
@@ -464,34 +462,34 @@
       g.addEventListener("mouseleave", hideTooltip);
       g.addEventListener("pointerdown", function(pp,gg,startPos,catLaneTop){ return function(e){
         if(e.button!=null && e.button!==0) return;
+        e.preventDefault();
         e.stopPropagation();
         hideTooltip();
-        var startSvg = svgPoint(e);
-        dragState = {id:pp.id, startY:startPos.y, startSvgY:startSvg.y, moved:false, laneTop:catLaneTop, el:gg};
-        try{ gg.setPointerCapture(e.pointerId); }catch(err){}
-      }; }(p, g, pos, layout.laneTop[p.catId]));
-      g.addEventListener("pointermove", function(gg){ return function(e){
-        if(!dragState || dragState.el!==gg) return;
-        var cur = svgPoint(e);
-        var dy = cur.y - dragState.startSvgY;
-        if(Math.abs(dy)>3) dragState.moved=true;
-        if(dragState.moved) gg.setAttribute("transform","translate(0,"+dy+")");
-      }; }(g));
-      g.addEventListener("pointerup", function(pp,gg){ return function(e){
-        if(!dragState || dragState.id!==pp.id){ dragState=null; return; }
-        var wasMoved = dragState.moved;
-        if(wasMoved){
-          var cur = svgPoint(e);
-          var dy = cur.y - dragState.startSvgY;
-          var finalY = dragState.startY + dy;
-          pp.manualRow = Math.max(0, Math.round((finalY - dragState.laneTop - SUBROW_H/2)/SUBROW_H));
-          gg.removeAttribute("transform");
-          justDraggedId = pp.id;
-          setTimeout(function(){ justDraggedId=null; }, 300);
-          commit();
+        dragState = gg; // marks "a drag is in progress on this element" for the tooltip/click guards
+        var startSvgY = svgPoint(e).y;
+        var st = {moved:false};
+        function onMove(ev){
+          var dy = svgPoint(ev).y - startSvgY;
+          if(Math.abs(dy)>3) st.moved=true;
+          if(st.moved) gg.setAttribute("transform","translate(0,"+dy+")");
         }
-        dragState = null;
-      }; }(p, g));
+        function onUp(ev){
+          document.removeEventListener("pointermove", onMove);
+          document.removeEventListener("pointerup", onUp);
+          dragState = null;
+          if(st.moved){
+            var dy = svgPoint(ev).y - startSvgY;
+            var finalY = startPos.y + dy;
+            pp.manualRow = Math.max(0, Math.round((finalY - catLaneTop - SUBROW_H/2)/SUBROW_H));
+            gg.removeAttribute("transform");
+            justDraggedId = pp.id;
+            setTimeout(function(){ justDraggedId=null; }, 300);
+            commit();
+          }
+        }
+        document.addEventListener("pointermove", onMove);
+        document.addEventListener("pointerup", onUp);
+      }; }(p, g, pos, layout.laneTop[p.catId]));
       nodeLayer.appendChild(g);
       nodeEls[p.id]=g;
     });

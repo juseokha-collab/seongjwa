@@ -38,7 +38,7 @@
 
   function normalizeState(s){
     s.categories.forEach(function(c){ if(!c.subs) c.subs=[]; });
-    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; });
+    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; if(p.bioHtml===undefined) p.bioHtml=null; });
     if(!s.timeAnchors) s.timeAnchors={};
     return s;
   }
@@ -419,15 +419,11 @@
       if(!pa||!pb) return;
       var posA=layout.pos[pa.id], posB=layout.pos[pb.id];
       if(!posA||!posB) return;
-      var midX=(posA.x+posB.x)/2, midY=(posA.y+posB.y)/2;
-      var dist=Math.abs(posB.x-posA.x);
-      var bow=Math.max(18, Math.min(60, dist*0.18));
-      var ctrlX=midX, ctrlY=midY-bow;
-      var tdx=posB.x-ctrlX, tdy=posB.y-ctrlY;
-      var tlen=Math.sqrt(tdx*tdx+tdy*tdy)||1;
+      var ddx=posB.x-posA.x, ddy=posB.y-posA.y;
+      var dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
       var NODE_R=7;
-      var endX=posB.x-tdx/tlen*NODE_R, endY=posB.y-tdy/tlen*NODE_R;
-      var attrs={class:"edge", d:"M"+posA.x+","+posA.y+" Q"+ctrlX+","+ctrlY+" "+endX+","+endY, "stroke-linecap":"round", "stroke-dasharray":"1 3.4"};
+      var endX=posB.x-ddx/dlen*NODE_R, endY=posB.y-ddy/dlen*NODE_R;
+      var attrs={class:"edge", d:"M"+posA.x+","+posA.y+" L"+endX+","+endY, "stroke-linecap":"round", "stroke-dasharray":"1 3.4"};
       var line=el("path",attrs);
       line.dataset.a=pa.id; line.dataset.b=pb.id; line.dataset.rid=r.id;
       edgeLayer.appendChild(line);
@@ -565,7 +561,8 @@
     html+='<div class="years">'+escapeHtml(panelYearsLabel(p))+
       (p.manualRow!=null ? ' <button type="button" class="mini-btn" id="resetRowBtn" title="자동 배치로 되돌리기">위치 초기화</button>' : '')+
       '</div>';
-    html+='<p class="bio">'+escapeHtml(p.bio||"")+'</p>';
+    var bioContent = p.bioHtml ? sanitizeRichHtml(p.bioHtml) : escapeHtml(p.bio||"").replace(/\n/g,"<br>");
+    html+='<p class="bio">'+bioContent+'</p>';
 
     html+='<h3>관계 · '+relLines.length+'</h3>';
     html+='<ul class="rel-list">';
@@ -660,12 +657,48 @@
     });
   }
 
+  // ---------------- rich text (bio) ----------------
+  var RTE_ALLOWED_TAGS = ["b","strong","i","em","u","span","br","div"];
+  function sanitizeRichHtml(html){
+    var div = document.createElement("div");
+    div.innerHTML = html;
+    (function clean(node){
+      Array.prototype.slice.call(node.childNodes).forEach(function(child){
+        if(child.nodeType===1){
+          var tag = child.tagName.toLowerCase();
+          if(RTE_ALLOWED_TAGS.indexOf(tag)===-1){
+            while(child.firstChild) child.parentNode.insertBefore(child.firstChild, child);
+            child.parentNode.removeChild(child);
+            return;
+          }
+          var styleColor = (tag==="span" && child.style) ? child.style.color : "";
+          Array.prototype.slice.call(child.attributes||[]).forEach(function(attr){ child.removeAttribute(attr.name); });
+          if(styleColor) child.style.color = styleColor;
+          clean(child);
+        } else if(child.nodeType!==3){
+          child.parentNode.removeChild(child);
+        }
+      });
+    })(div);
+    return div.innerHTML;
+  }
+  function initRichToolbar(){
+    document.querySelectorAll("#rteToolbar button").forEach(function(btn){
+      btn.addEventListener("mousedown", function(e){ e.preventDefault(); });
+      btn.addEventListener("click", function(){
+        var cmd = btn.getAttribute("data-cmd");
+        var color = btn.getAttribute("data-color");
+        document.getElementById("pmBio").focus();
+        try{
+          if(color) document.execCommand("foreColor", false, color);
+          else if(cmd) document.execCommand(cmd);
+        }catch(e){}
+      });
+    });
+  }
+
   // ---------------- person modal ----------------
   var editingId=null;
-  function autoGrow(el){
-    el.style.height="auto";
-    el.style.height=(el.scrollHeight+2)+"px";
-  }
   function openPersonModal(id){
     editingId = id||null;
     var p = id ? personOf(id) : null;
@@ -675,8 +708,11 @@
     document.getElementById("pmYear").value = p ? formatDateInput(p.sortYear, p.birthMonth, p.birthDay) : "";
     document.getElementById("pmDeathYear").value = p ? formatDateInput(p.deathYear, p.deathMonth, p.deathDay) : "";
     var bioEl=document.getElementById("pmBio");
-    bioEl.value = p ? (p.bio||"") : "";
-    autoGrow(bioEl);
+    if(p){
+      bioEl.innerHTML = p.bioHtml ? sanitizeRichHtml(p.bioHtml) : escapeHtml(p.bio||"").replace(/\n/g,"<br>");
+    } else {
+      bioEl.innerHTML = "";
+    }
     var initCatId = p ? p.catId : (STATE.categories[0]&&STATE.categories[0].id);
     renderCatOptions(initCatId);
     document.getElementById("pmNewCat").value="";
@@ -721,7 +757,7 @@
       if(this.value==="__new__"){ newField.style.display="block"; newField.focus(); }
       else newField.style.display="none";
     });
-    document.getElementById("pmBio").addEventListener("input", function(){ autoGrow(this); });
+    initRichToolbar();
     document.getElementById("pmCancel").addEventListener("click", closePersonModal);
     document.getElementById("pmClose").addEventListener("click", closePersonModal);
     document.getElementById("addPersonBtn").addEventListener("click", function(){ openPersonModal(null); });
@@ -729,7 +765,9 @@
       e.preventDefault();
       var name=document.getElementById("pmName").value.trim();
       var birth = parseDateInput(document.getElementById("pmYear").value);
-      var bio=document.getElementById("pmBio").value.trim();
+      var bioEl=document.getElementById("pmBio");
+      var bioText=bioEl.textContent.trim();
+      var bioHtml=bioText ? sanitizeRichHtml(bioEl.innerHTML.trim()) : "";
       var catSel=document.getElementById("pmCat").value;
       if(!name || !birth){ alert("이름과 출생년(예: 1960 또는 1960.3.5)은 필수예요."); return; }
       var deathRaw = document.getElementById("pmDeathYear").value.trim();
@@ -753,7 +791,7 @@
         subId = subSel;
       }
       var fields = {
-        name:name, bio:bio, catId:catId, subId:subId,
+        name:name, bio:bioText, bioHtml:bioHtml, catId:catId, subId:subId,
         sortYear:birth.y, birthMonth:birth.m, birthDay:birth.d,
         deathYear: death?death.y:null, deathMonth: death?death.m:null, deathDay: death?death.d:null
       };

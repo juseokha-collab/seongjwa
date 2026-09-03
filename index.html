@@ -240,6 +240,25 @@
     border-radius:8px; padding:8px 10px; font-size:.85rem; outline:none;
   }
   select:focus-visible, input:focus-visible, textarea:focus-visible{outline:2px solid var(--focus-ring); outline-offset:1px;}
+
+  .rte-toolbar{display:flex; align-items:center; gap:6px; margin-bottom:6px; flex-wrap:wrap;}
+  .rte-btn{
+    font-size:.78rem; min-width:26px; height:26px; padding:0 8px; border-radius:6px;
+    border:1px solid var(--line-mid); background:var(--bg-elevated); color:var(--text-secondary); cursor:pointer;
+  }
+  .rte-btn:hover{color:var(--text-primary); border-color:var(--gold);}
+  .rte-btn.rte-clear{font-size:.7rem; padding:0 8px;}
+  .rte-swatch{
+    width:20px; height:20px; border-radius:50%; border:1px solid var(--line-faint); cursor:pointer; padding:0;
+  }
+  .rte-swatch:hover{transform:scale(1.15); box-shadow:0 0 0 2px var(--bg-panel), 0 0 0 3px var(--line-mid);}
+  .rte-sep{width:1px; height:18px; background:var(--line-faint); margin:0 2px;}
+  .rte-editor{
+    background:var(--bg-elevated); border:1px solid var(--line-mid); color:var(--text-primary);
+    border-radius:8px; padding:8px 10px; font-size:.85rem; outline:none;
+    min-height:64px; max-height:320px; overflow-y:auto; line-height:1.5;
+  }
+  .rte-editor:focus-visible{outline:2px solid var(--focus-ring); outline-offset:1px;}
   textarea{resize:vertical; width:100%;}
 
   .notes{display:flex; flex-direction:column; gap:10px; margin-bottom:6px;}
@@ -368,7 +387,20 @@
       </div>
       <div class="field">
         <label for="pmBio">한줄 소개</label>
-        <textarea id="pmBio" rows="3" style="resize:none; overflow-y:auto; max-height:320px;"></textarea>
+        <div class="rte-toolbar" id="rteToolbar">
+          <button type="button" class="rte-btn" data-cmd="bold" title="볼드"><b>B</b></button>
+          <button type="button" class="rte-btn" data-cmd="italic" title="이탤릭"><i>I</i></button>
+          <button type="button" class="rte-btn" data-cmd="underline" title="밑줄"><u>U</u></button>
+          <span class="rte-sep"></span>
+          <button type="button" class="rte-swatch" data-color="#e63946" style="background:#e63946" title="빨강"></button>
+          <button type="button" class="rte-swatch" data-color="#3a86ff" style="background:#3a86ff" title="파랑"></button>
+          <button type="button" class="rte-swatch" data-color="#2a9d5c" style="background:#2a9d5c" title="초록"></button>
+          <button type="button" class="rte-swatch" data-color="#f4a340" style="background:#f4a340" title="주황"></button>
+          <button type="button" class="rte-swatch" data-color="#9b5de5" style="background:#9b5de5" title="보라"></button>
+          <span class="rte-sep"></span>
+          <button type="button" class="rte-btn rte-clear" data-cmd="removeFormat" title="서식 지우기">지우기</button>
+        </div>
+        <div id="pmBio" class="rte-editor" contenteditable="true"></div>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn ghost" id="pmCancel">취소</button>

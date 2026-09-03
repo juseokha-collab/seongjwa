@@ -2,7 +2,6 @@
   "use strict";
 
   var PALETTE = ["#e8b84b","#b98be0","#5fd1c9","#e8849b","#7fb0e8","#e8a75f","#8fd17a","#d68fe0","#6fcf9e","#e0c56f"];
-  var DEFAULT_REL_TYPES = ["사제","영향","교류"];
   var SUBROW_H = 46;
   var LANE_PAD = 22;
   var PX_PER_YEAR = 2.4;
@@ -32,22 +31,14 @@
         {id:"lit", name:"문학", color:PALETTE[3], subs:[]}
       ],
       people:[],
-      relationships:[],
-      relTypes:DEFAULT_REL_TYPES.slice()
+      relationships:[]
     };
   }
 
   function normalizeState(s){
     s.categories.forEach(function(c){ if(!c.subs) c.subs=[]; });
     s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; });
-    if(!s.relTypes || !s.relTypes.length) s.relTypes = DEFAULT_REL_TYPES.slice();
     return s;
-  }
-  function ensureRelType(name){
-    name = (name||"").trim();
-    if(!name) return null;
-    if(STATE.relTypes.indexOf(name)===-1) STATE.relTypes.push(name);
-    return name;
   }
 
   var STATE = normalizeState(loadLocal() || defaultState());
@@ -553,13 +544,9 @@
       var otherId = r.a===id ? r.b : r.a;
       var other = personOf(otherId);
       if(!other) return;
-      var typeOptions = STATE.relTypes.indexOf(r.type)>-1 ? STATE.relTypes : STATE.relTypes.concat([r.type]);
       html+='<li class="rel-item" data-jump="'+other.id+'">'+
         '<span class="dot" style="background:'+personColor(other)+'"></span>'+
         '<span class="rel-name">'+escapeHtml(other.name)+'</span>'+
-        '<select class="rel-type-select" data-rid="'+r.id+'" aria-label="관계 유형 수정">'+
-          typeOptions.map(function(t){ return '<option value="'+escapeHtml(t)+'"'+(t===r.type?" selected":"")+'>'+escapeHtml(t)+'</option>'; }).join("")+
-        '</select>'+
         '<button class="rel-del" data-rid="'+r.id+'" aria-label="관계 삭제">✕</button>'+
       '</li>';
     });
@@ -571,10 +558,8 @@
     html+='<div class="rel-add">';
     html+='<input type="text" id="relTarget" list="relTargetList" placeholder="'+(otherPeople.length?"인물 검색":"추가할 인물이 없습니다")+'"'+(otherPeople.length?"":" disabled")+'>';
     html+='<datalist id="relTargetList">'+otherPeople.map(function(x){ return '<option value="'+escapeHtml(relLabel(x))+'">'; }).join("")+'</datalist>';
-    html+='<select id="relType">'+STATE.relTypes.map(function(t){ return '<option value="'+escapeHtml(t)+'">'+escapeHtml(t)+'</option>'; }).join("")+'<option value="__new__">+ 새 유형</option></select>';
     html+='<button class="mini-btn" id="relAddBtn"'+(otherPeople.length?"":" disabled")+'>+ 연결</button>';
     html+='</div>';
-    html+='<input type="text" id="relNewType" placeholder="새 관계 유형 이름 (예: 라이벌)" style="display:none; width:100%; margin-bottom:22px;">';
 
     html+='<h3>나의 노트</h3>';
     html+='<div class="notes">';
@@ -604,7 +589,7 @@
     });
     body.querySelectorAll(".rel-item").forEach(function(item){
       item.addEventListener("click",function(e){
-        if(e.target.closest(".rel-del") || e.target.closest(".rel-type-select")) return;
+        if(e.target.closest(".rel-del")) return;
         selectNode(item.getAttribute("data-jump"));
       });
     });
@@ -616,33 +601,14 @@
         commit();
       });
     });
-    body.querySelectorAll(".rel-type-select").forEach(function(sel){
-      sel.addEventListener("click",function(e){ e.stopPropagation(); });
-      sel.addEventListener("change",function(){
-        var rid=sel.getAttribute("data-rid");
-        var r = STATE.relationships.filter(function(x){ return x.id===rid; })[0];
-        if(r){ r.type = sel.value; commit(); }
-      });
-    });
-    var relTypeSel=document.getElementById("relType");
-    if(relTypeSel) relTypeSel.addEventListener("change",function(){
-      document.getElementById("relNewType").style.display = this.value==="__new__" ? "block" : "none";
-    });
     var relAddBtn=document.getElementById("relAddBtn");
     if(relAddBtn) relAddBtn.addEventListener("click",function(){
       var typed=document.getElementById("relTarget").value.trim();
-      var typeSel=document.getElementById("relType").value;
       var target = otherPeople.filter(function(x){ return relLabel(x)===typed; })[0];
       if(!target){ alert("목록에서 인물을 선택해주세요."); return; }
-      var type = typeSel;
-      if(typeSel==="__new__"){
-        var newType = ensureRelType(document.getElementById("relNewType").value);
-        if(!newType){ alert("새 관계 유형 이름을 입력해주세요."); return; }
-        type = newType;
-      }
       var exists = STATE.relationships.some(function(r){ return (r.a===id&&r.b===target.id)||(r.a===target.id&&r.b===id); });
       if(exists){ alert("이미 연결된 관계가 있어요."); return; }
-      STATE.relationships.push({id:uid("rel"), a:id, b:target.id, type:type});
+      STATE.relationships.push({id:uid("rel"), a:id, b:target.id});
       commit();
     });
     body.querySelectorAll(".note-del").forEach(function(btn){

@@ -529,6 +529,29 @@
     scrollNodeIntoView(id);
   }
 
+  function nudgeRow(delta){
+    if(!currentId) return;
+    var p = personOf(currentId);
+    if(!p) return;
+    var layout = computeLayout();
+    var pos = layout.pos[p.id];
+    if(!pos) return;
+    var laneTop = layout.laneTop[p.catId];
+    var curRow = Math.round((pos.y - laneTop - SUBROW_H/2)/SUBROW_H);
+    p.manualRow = Math.max(0, curRow + delta);
+    commit();
+  }
+  function initRowNudge(){
+    document.addEventListener("keydown", function(e){
+      if(e.key!=="ArrowUp" && e.key!=="ArrowDown") return;
+      if(!currentId) return;
+      var tag = (e.target && e.target.tagName || "").toLowerCase();
+      if(tag==="input" || tag==="textarea" || tag==="select" || (e.target && e.target.isContentEditable)) return;
+      e.preventDefault();
+      nudgeRow(e.key==="ArrowUp" ? -1 : 1);
+    });
+  }
+
   function scrollNodeIntoView(id){
     var layout = computeLayout();
     var pos = layout.pos[id];
@@ -991,6 +1014,7 @@
     initCatModal();
     initSearch();
     initTheme();
+    initRowNudge();
     renderAll();
     spotlightRandomPerson();
   });

@@ -136,7 +136,8 @@
   #stageScroll{flex:1 1 auto; min-height:0; overflow:auto; position:relative; display:flex; align-items:flex-start;}
   #stage{display:block; flex:none;}
 
-  .node{cursor:pointer; outline:none;}
+  .node{cursor:grab; outline:none; touch-action:none;}
+  .node:active{cursor:grabbing;}
   .node circle.core{transition:r .15s ease, opacity .2s ease;}
   .node text{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:var(--text-primary); pointer-events:none; transition:opacity .2s ease, font-weight .15s ease;}
   .node text.years{font-family:Consolas,"JetBrains Mono",monospace; font-size:9px; fill:var(--text-muted);}

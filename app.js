@@ -38,7 +38,7 @@
 
   function normalizeState(s){
     s.categories.forEach(function(c){ if(!c.subs) c.subs=[]; });
-    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; });
+    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; });
     if(!s.relTypes || !s.relTypes.length) s.relTypes = DEFAULT_REL_TYPES.slice();
     return s;
   }
@@ -161,16 +161,26 @@
     activeCats.forEach(function(c){
       var members = activePeople.filter(function(p){ return p.catId===c.id; })
         .sort(function(a,b){ return xOf[a.id]-xOf[b.id]; });
-      var rowEnds = []; // {x, hw} of the last-placed label in each row
+      var rowEnds = []; // {x, hw} of the last-placed label in each row (holes allowed)
       members.forEach(function(p){
         var x = xOf[p.id];
         var hw = labelHalfWidth(p);
+        if(p.manualRow!=null){
+          subRowOf[p.id]=p.manualRow;
+          rowEnds[p.manualRow]={x:x,hw:hw};
+          return;
+        }
         var placed = false;
         for(var r=0;r<rowEnds.length;r++){
+          if(!rowEnds[r]){ continue; }
           var need = rowEnds[r].hw + hw + LABEL_PAD;
           if(x - rowEnds[r].x >= need){ subRowOf[p.id]=r; rowEnds[r]={x:x,hw:hw}; placed=true; break; }
         }
-        if(!placed){ subRowOf[p.id]=rowEnds.length; rowEnds.push({x:x,hw:hw}); }
+        if(!placed){
+          var newRow=rowEnds.length;
+          for(var k=0;k<rowEnds.length;k++){ if(!rowEnds[k]){ newRow=k; break; } }
+          subRowOf[p.id]=newRow; rowEnds[newRow]={x:x,hw:hw};
+        }
       });
       rowCountByCat[c.id] = Math.max(1, rowEnds.length);
     });
@@ -273,6 +283,15 @@
 
   var stage, laneCol, emptyHint;
   var nodeEls={}, edgeEls=[];
+  var dragState=null, justDraggedId=null;
+  function svgPoint(e){
+    var pt = stage.createSVGPoint();
+    pt.x=e.clientX; pt.y=e.clientY;
+    var ctm = stage.getScreenCTM();
+    if(!ctm) return {x:0,y:0};
+    var p = pt.matrixTransform(ctm.inverse());
+    return {x:p.x, y:p.y};
+  }
 
   function renderAll(){
     renderLegend();
@@ -403,11 +422,45 @@
       var yrs=el("text",{class:"years", x:pos.x, y:pos.y-12, "text-anchor":"middle"});
       yrs.textContent = yearsLabel(p);
       g.appendChild(yrs);
-      g.addEventListener("click", function(id){ return function(e){ e.stopPropagation(); selectNode(id); }; }(p.id));
+      g.addEventListener("click", function(id){ return function(e){
+        e.stopPropagation();
+        if(justDraggedId===id){ justDraggedId=null; return; }
+        selectNode(id);
+      }; }(p.id));
       g.addEventListener("keydown", function(id){ return function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); selectNode(id);} }; }(p.id));
-      g.addEventListener("mouseenter", function(pp){ return function(e){ showTooltip(pp,e); }; }(p));
-      g.addEventListener("mousemove", positionTooltip);
+      g.addEventListener("mouseenter", function(pp){ return function(e){ if(!dragState) showTooltip(pp,e); }; }(p));
+      g.addEventListener("mousemove", function(e){ if(!dragState) positionTooltip(e); });
       g.addEventListener("mouseleave", hideTooltip);
+      g.addEventListener("pointerdown", function(pp,gg,startPos,catLaneTop){ return function(e){
+        if(e.button!=null && e.button!==0) return;
+        e.stopPropagation();
+        hideTooltip();
+        var startSvg = svgPoint(e);
+        dragState = {id:pp.id, startY:startPos.y, startSvgY:startSvg.y, moved:false, laneTop:catLaneTop, el:gg};
+        try{ gg.setPointerCapture(e.pointerId); }catch(err){}
+      }; }(p, g, pos, layout.laneTop[p.catId]));
+      g.addEventListener("pointermove", function(gg){ return function(e){
+        if(!dragState || dragState.el!==gg) return;
+        var cur = svgPoint(e);
+        var dy = cur.y - dragState.startSvgY;
+        if(Math.abs(dy)>3) dragState.moved=true;
+        if(dragState.moved) gg.setAttribute("transform","translate(0,"+dy+")");
+      }; }(g));
+      g.addEventListener("pointerup", function(pp,gg){ return function(e){
+        if(!dragState || dragState.id!==pp.id){ dragState=null; return; }
+        var wasMoved = dragState.moved;
+        if(wasMoved){
+          var cur = svgPoint(e);
+          var dy = cur.y - dragState.startSvgY;
+          var finalY = dragState.startY + dy;
+          pp.manualRow = Math.max(0, Math.round((finalY - dragState.laneTop - SUBROW_H/2)/SUBROW_H));
+          gg.removeAttribute("transform");
+          justDraggedId = pp.id;
+          setTimeout(function(){ justDraggedId=null; }, 300);
+          commit();
+        }
+        dragState = null;
+      }; }(p, g));
       nodeLayer.appendChild(g);
       nodeEls[p.id]=g;
     });
@@ -480,7 +533,9 @@
     html+='<span class="badge"><span class="dot" style="background:'+color+'"></span>'+escapeHtml(c?c.name:"")+(sub?(' · '+escapeHtml(sub.name)):'')+'</span>';
     html+='<div class="panel-actions"><button class="mini-btn" id="editPersonBtn">수정</button><button class="mini-btn danger" id="deletePersonBtn">삭제</button></div>';
     html+='<h2>'+escapeHtml(p.name)+' <span class="update-count" title="수정 횟수">('+(p.updateCount||0)+')</span></h2>';
-    html+='<div class="years">'+escapeHtml(panelYearsLabel(p))+'</div>';
+    html+='<div class="years">'+escapeHtml(panelYearsLabel(p))+
+      (p.manualRow!=null ? ' <button type="button" class="mini-btn" id="resetRowBtn" title="자동 배치로 되돌리기">위치 초기화</button>' : '')+
+      '</div>';
     html+='<p class="bio">'+escapeHtml(p.bio||"")+'</p>';
 
     html+='<h3>관계 · '+relLines.length+'</h3>';
@@ -529,6 +584,8 @@
 
     document.getElementById("panelClose").addEventListener("click",function(e){ e.stopPropagation(); clearSelection(); });
     document.getElementById("editPersonBtn").addEventListener("click",function(){ openPersonModal(p.id); });
+    var resetRowBtn=document.getElementById("resetRowBtn");
+    if(resetRowBtn) resetRowBtn.addEventListener("click",function(){ p.manualRow=null; commit(); });
     document.getElementById("deletePersonBtn").addEventListener("click",function(){
       if(!confirm(p.name+"을(를) 삭제할까요? 연결된 관계도 함께 삭제됩니다.")) return;
       STATE.people = STATE.people.filter(function(x){ return x.id!==p.id; });

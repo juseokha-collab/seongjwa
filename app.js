@@ -387,9 +387,6 @@
     stage.appendChild(laneDiv);
 
     var defs=el("defs",{});
-    var marker=el("marker",{id:"arrow",viewBox:"0 0 10 10",refX:"8",refY:"5",markerWidth:"4.7",markerHeight:"4.7",orient:"auto-start-reverse"});
-    marker.appendChild(el("path",{d:"M0,0 L10,5 L0,10 z",fill:"var(--edge-ink)"}));
-    defs.appendChild(marker);
     var glow=el("filter",{id:"starglow",x:"-60%",y:"-60%",width:"220%",height:"220%"});
     glow.innerHTML='<feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>';
     defs.appendChild(glow);
@@ -402,7 +399,6 @@
       if(!pa||!pb) return;
       var posA=layout.pos[pa.id], posB=layout.pos[pb.id];
       if(!posA||!posB) return;
-      var dash = r.type==="영향" ? "5 4" : (r.type==="교류" ? "1 3.4" : null);
       var midX=(posA.x+posB.x)/2, midY=(posA.y+posB.y)/2;
       var dist=Math.abs(posB.x-posA.x);
       var bow=Math.max(18, Math.min(60, dist*0.18));
@@ -411,9 +407,7 @@
       var tlen=Math.sqrt(tdx*tdx+tdy*tdy)||1;
       var NODE_R=7;
       var endX=posB.x-tdx/tlen*NODE_R, endY=posB.y-tdy/tlen*NODE_R;
-      var attrs={class:"edge", d:"M"+posA.x+","+posA.y+" Q"+ctrlX+","+ctrlY+" "+endX+","+endY, "stroke-linecap":"round"};
-      if(dash) attrs["stroke-dasharray"]=dash;
-      if(r.type!=="교류") attrs["marker-end"]="url(#arrow)";
+      var attrs={class:"edge", d:"M"+posA.x+","+posA.y+" Q"+ctrlX+","+ctrlY+" "+endX+","+endY, "stroke-linecap":"round", "stroke-dasharray":"1 3.4"};
       var line=el("path",attrs);
       line.dataset.a=pa.id; line.dataset.b=pb.id; line.dataset.rid=r.id;
       edgeLayer.appendChild(line);

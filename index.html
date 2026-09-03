@@ -172,12 +172,6 @@
   #emptyHint p{color:var(--text-muted); font-size:.92rem; margin:0; max-width:280px; line-height:1.7;}
   #emptyHint button{pointer-events:auto;}
 
-  .line-legend{
-    position:absolute; left:110px; bottom:14px; display:flex; flex-direction:column; gap:5px;
-    font-family:"JetBrains Mono",monospace; font-size:10.5px; color:var(--text-muted); pointer-events:none;
-  }
-  .line-legend .row{display:flex; align-items:center; gap:8px;}
-
   /* ---------- node hover tooltip ---------- */
   .node-tooltip{
     position:fixed; z-index:60; display:none; pointer-events:none;
@@ -291,17 +285,12 @@
   .field-row .field{flex:1;}
   .modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:20px;}
 
-  .footer-note{
-    padding:14px 22px 20px; color:var(--text-muted); font-size:.78rem; text-align:center;
-  }
-
   @media (max-width:760px){
     .topbar-mid{order:3; max-width:none; flex:1 1 100%;}
     .panel{width:100%; max-width:100%; top:auto; bottom:0; height:82vh; border-left:none; border-top:1px solid var(--line-faint); border-radius:16px 16px 0 0; transform:translateY(100%);}
     .panel.open{transform:translateY(0);}
     #laneCol{width:68px;}
     .lane-label{font-size:.7rem; left:8px;}
-    .line-legend{display:none;}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -335,19 +324,12 @@
       <div id="yearRow" aria-hidden="true"></div>
       <svg id="stage" viewBox="0 0 900 400" role="img" aria-label="내가 학습한 인물들을 시대와 관계로 연결한 성좌 지도"></svg>
     </div>
-    <div class="line-legend" aria-hidden="true">
-      <div class="row"><svg width="30" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#9ba1c4" stroke-width="1.6"/></svg> 사제</div>
-      <div class="row"><svg width="30" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#9ba1c4" stroke-width="1.6" stroke-dasharray="5 3"/></svg> 영향</div>
-      <div class="row"><svg width="30" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#9ba1c4" stroke-width="1.6" stroke-dasharray="1 3.2" stroke-linecap="round"/></svg> 교류</div>
-    </div>
   </div>
   <div id="emptyHint">
     <p>아직 추가된 인물이 없어요.<br>관심 있는 인물부터 하나씩 채워보세요.</p>
     <button class="btn primary" id="emptyAddBtn">+ 첫 인물 추가하기</button>
   </div>
 </div>
-
-<p class="footer-note">역사 · 철학 · 음악 등 내가 학습한 인물을 시대와 관계로 기록하는 개인 성좌 지도</p>
 
 <div class="node-tooltip" id="nodeTooltip"></div>
 

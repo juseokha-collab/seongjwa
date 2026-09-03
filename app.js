@@ -109,6 +109,38 @@
   }
 
   // ---------------- layout ----------------
+  var MIN_TICK_STEP = 80, MAX_TICK_STEP = 220;
+  function buildYearToX(activePeople){
+    var seen = {};
+    activePeople.forEach(function(p){ seen[p.sortYear]=true; });
+    var uniqueYears = Object.keys(seen).map(Number).sort(function(a,b){ return a-b; });
+    var ticks = [];
+    if(uniqueYears.length){
+      var curX = MARGIN_L;
+      ticks.push({year:uniqueYears[0], x:curX});
+      for(var i=1;i<uniqueYears.length;i++){
+        var dy = uniqueYears[i]-uniqueYears[i-1];
+        var gap = Math.max(MIN_TICK_STEP, Math.min(MAX_TICK_STEP, dy*PX_PER_YEAR));
+        curX += gap;
+        ticks.push({year:uniqueYears[i], x:curX});
+      }
+    }
+    function yearToX(year){
+      if(!ticks.length) return MARGIN_L;
+      var first=ticks[0], last=ticks[ticks.length-1];
+      if(year<=first.year) return first.x-(first.year-year)*PX_PER_YEAR;
+      if(year>=last.year) return last.x+(year-last.year)*PX_PER_YEAR;
+      for(var i=0;i<ticks.length-1;i++){
+        if(year>=ticks[i].year && year<=ticks[i+1].year){
+          var span=ticks[i+1].year-ticks[i].year;
+          var t=span?(year-ticks[i].year)/span:0;
+          return ticks[i].x+t*(ticks[i+1].x-ticks[i].x);
+        }
+      }
+      return last.x;
+    }
+    return {yearToX:yearToX, maxX: ticks.length?ticks[ticks.length-1].x:MARGIN_L};
+  }
   function computeLayout(){
     var active = activeCatIds || STATE.categories.map(function(c){ return c.id; });
     var activeCats = STATE.categories.filter(function(c){ return active.indexOf(c.id)>-1; });
@@ -118,10 +150,10 @@
     var minY = years.length ? Math.min.apply(null,years) : 1900;
     var maxY = years.length ? Math.max.apply(null,years) : 2026;
     if(minY===maxY){ minY-=10; maxY+=10; }
-    var span = maxY-minY;
 
+    var scale = buildYearToX(activePeople);
     var xOf = {};
-    activePeople.forEach(function(p){ xOf[p.id] = MARGIN_L + (p.sortYear-minY)*PX_PER_YEAR; });
+    activePeople.forEach(function(p){ xOf[p.id] = scale.yearToX(p.sortYear); });
 
     // pack people within each category into sub-rows so close-in-time people stack vertically
     // instead of being pushed apart horizontally (which would distort the timeline)
@@ -157,12 +189,12 @@
       pos[p.id] = {x:xOf[p.id], y:laneTop[p.catId]+row*SUBROW_H+SUBROW_H/2};
     });
 
-    var width = MARGIN_L + span*PX_PER_YEAR + MARGIN_R;
+    var width = scale.maxX + MARGIN_R;
     activePeople.forEach(function(p){ if(pos[p.id].x+MARGIN_R > width) width = pos[p.id].x+MARGIN_R; });
     var scrollEl = document.getElementById("stageScroll");
     var minCanvasWidth = (scrollEl && scrollEl.clientWidth) ? scrollEl.clientWidth : 900;
 
-    return {pos:pos, minY:minY, maxY:maxY, width:Math.max(width,minCanvasWidth), height:height, activeCats:activeCats, laneTop:laneTop, rowCountByCat:rowCountByCat};
+    return {pos:pos, minY:minY, maxY:maxY, width:Math.max(width,minCanvasWidth), height:height, activeCats:activeCats, laneTop:laneTop, rowCountByCat:rowCountByCat, yearToX:scale.yearToX};
   }
 
   function fmtYear(y){
@@ -302,7 +334,7 @@
     var gl=el("g",{"aria-hidden":"true"});
     var startCent = Math.floor(layout.minY/100)*100;
     for(var yr=startCent; yr<=layout.maxY+100; yr+=100){
-      var x = MARGIN_L + (yr-layout.minY)*PX_PER_YEAR;
+      var x = layout.yearToX(yr);
       if(x<MARGIN_L-5 || x>layout.width-10) continue;
       gl.appendChild(el("line",{x1:x,y1:MARGIN_TOP-24,x2:x,y2:layout.height-MARGIN_BOTTOM+6,class:"grid-line"}));
       var t=el("text",{x:x,y:MARGIN_TOP-30,class:"grid-label","text-anchor":"middle"});

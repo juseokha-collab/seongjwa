@@ -8,6 +8,7 @@
   var PX_PER_YEAR = 2.4;
   var MARGIN_L = 90, MARGIN_R = 90, MARGIN_TOP = 60, MARGIN_BOTTOM = 40;
   var LABEL_PAD = 14;
+  var YEAR_ROW_H = 34;
   var NODE_LABEL_FONT = "Consolas,'JetBrains Mono',monospace";
   var measureCtx = document.createElement("canvas").getContext("2d");
   function labelHalfWidth(p){
@@ -328,17 +329,34 @@
 
     emptyHint.style.display = STATE.people.length ? "none" : "flex";
 
-    // lane label column
-    laneCol.style.height = layout.height+"px";
+    // lane label column (offset down by YEAR_ROW_H to line up with the svg, which sits below the sticky year header)
+    laneCol.style.height = (layout.height+YEAR_ROW_H)+"px";
     laneCol.innerHTML="";
     layout.activeCats.forEach(function(c){
       var bandH = layout.rowCountByCat[c.id]*SUBROW_H;
       var d=document.createElement("div");
       d.className="lane-label";
-      d.style.top=(layout.laneTop[c.id]+bandH/2-11)+"px";
+      d.style.top=(YEAR_ROW_H+layout.laneTop[c.id]+bandH/2-11)+"px";
       d.innerHTML='<span class="dot" style="background:'+c.color+'"></span>'+escapeHtml(c.name);
       laneCol.appendChild(d);
     });
+
+    // sticky year header row
+    var yearRow=document.getElementById("yearRow");
+    yearRow.style.width = layout.width+"px";
+    yearRow.innerHTML="";
+    (function(){
+      var startCent = Math.floor(layout.minY/100)*100;
+      for(var yr=startCent; yr<=layout.maxY+100; yr+=100){
+        var x = layout.yearToX(yr);
+        if(x<MARGIN_L-5 || x>layout.width-10) continue;
+        var t=document.createElement("div");
+        t.className="year-tick";
+        t.style.left=x+"px";
+        t.textContent=fmtYear(yr);
+        yearRow.appendChild(t);
+      }
+    })();
 
     // bg stars
     var bg=el("g",{"aria-hidden":"true"});
@@ -349,16 +367,13 @@
     }
     stage.appendChild(bg);
 
-    // century gridlines
+    // century gridlines (labels now render in the sticky #yearRow header instead)
     var gl=el("g",{"aria-hidden":"true"});
-    var startCent = Math.floor(layout.minY/100)*100;
-    for(var yr=startCent; yr<=layout.maxY+100; yr+=100){
-      var x = layout.yearToX(yr);
-      if(x<MARGIN_L-5 || x>layout.width-10) continue;
-      gl.appendChild(el("line",{x1:x,y1:MARGIN_TOP-24,x2:x,y2:layout.height-MARGIN_BOTTOM+6,class:"grid-line"}));
-      var t=el("text",{x:x,y:MARGIN_TOP-30,class:"grid-label","text-anchor":"middle"});
-      t.textContent = fmtYear(yr);
-      gl.appendChild(t);
+    var startCent2 = Math.floor(layout.minY/100)*100;
+    for(var yr2=startCent2; yr2<=layout.maxY+100; yr2+=100){
+      var xg = layout.yearToX(yr2);
+      if(xg<MARGIN_L-5 || xg>layout.width-10) continue;
+      gl.appendChild(el("line",{x1:xg,y1:0,x2:xg,y2:layout.height-MARGIN_BOTTOM+6,class:"grid-line"}));
     }
     stage.appendChild(gl);
 

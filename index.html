@@ -134,6 +134,15 @@
   .lane-label .dot{width:8px; height:8px; border-radius:50%; flex:none;}
 
   #stageScroll{flex:1 1 auto; min-height:0; overflow:auto; position:relative; display:flex; align-items:flex-start;}
+  #stageContent{display:flex; flex-direction:column; flex:none;}
+  #yearRow{
+    position:sticky; top:0; z-index:4; height:34px;
+    background:var(--bg-deep); border-bottom:1px solid var(--line-faint);
+  }
+  .year-tick{
+    position:absolute; top:9px; transform:translateX(-50%);
+    font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--text-muted); white-space:nowrap;
+  }
   #stage{display:block; flex:none;}
 
   .node{cursor:grab; outline:none; touch-action:none;}
@@ -154,7 +163,6 @@
 
   .grid-line{stroke:var(--line-faint); stroke-dasharray:2 5;}
   .lane-divider{stroke:var(--line-faint); opacity:.7;}
-  .grid-label{font-family:"JetBrains Mono",monospace; font-size:11px; fill:var(--text-muted);}
   .bg-star{fill:var(--star-dust);}
 
   #emptyHint{
@@ -323,7 +331,10 @@
 <div class="stage-wrap">
   <div id="stageScroll">
     <div id="laneCol" aria-hidden="true"></div>
-    <svg id="stage" viewBox="0 0 900 400" role="img" aria-label="내가 학습한 인물들을 시대와 관계로 연결한 성좌 지도"></svg>
+    <div id="stageContent">
+      <div id="yearRow" aria-hidden="true"></div>
+      <svg id="stage" viewBox="0 0 900 400" role="img" aria-label="내가 학습한 인물들을 시대와 관계로 연결한 성좌 지도"></svg>
+    </div>
     <div class="line-legend" aria-hidden="true">
       <div class="row"><svg width="30" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#9ba1c4" stroke-width="1.6"/></svg> 사제</div>
       <div class="row"><svg width="30" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#9ba1c4" stroke-width="1.6" stroke-dasharray="5 3"/></svg> 영향</div>

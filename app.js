@@ -31,13 +31,15 @@
         {id:"lit", name:"문학", color:PALETTE[3], subs:[]}
       ],
       people:[],
-      relationships:[]
+      relationships:[],
+      timeAnchors:{}
     };
   }
 
   function normalizeState(s){
     s.categories.forEach(function(c){ if(!c.subs) c.subs=[]; });
     s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; });
+    if(!s.timeAnchors) s.timeAnchors={};
     return s;
   }
 
@@ -101,24 +103,29 @@
   }
 
   // ---------------- layout ----------------
-  var MIN_TICK_STEP = 80, MAX_TICK_STEP = 220;
-  function buildYearToX(activePeople){
-    var seen = {};
-    activePeople.forEach(function(p){ seen[p.sortYear]=true; });
-    var uniqueYears = Object.keys(seen).map(Number).sort(function(a,b){ return a-b; });
-    var ticks = [];
-    if(uniqueYears.length){
-      var curX = MARGIN_L;
-      ticks.push({year:uniqueYears[0], x:curX});
-      for(var i=1;i<uniqueYears.length;i++){
-        var dy = uniqueYears[i]-uniqueYears[i-1];
-        var gap = Math.max(MIN_TICK_STEP, Math.min(MAX_TICK_STEP, dy*PX_PER_YEAR));
-        curX += gap;
-        ticks.push({year:uniqueYears[i], x:curX});
-      }
+  var MIN_ANCHOR_GAP = 60;
+  // The scale is defined by century marks the user can drag left/right (see #yearRow).
+  // Dragging a mark left narrows the span before it (and widens the one after); dragging
+  // it right does the opposite. Anything without a manual position falls back to a plain
+  // linear default so the ticks start out evenly spaced.
+  function buildYearToX(minY, maxY){
+    var startCent = Math.floor(minY/100)*100;
+    var endCent = Math.ceil(maxY/100)*100;
+    if(endCent<=startCent) endCent = startCent+100;
+    var centYears = [];
+    for(var yr=startCent; yr<=endCent; yr+=100) centYears.push(yr);
+    if(centYears.length<2) centYears.push(centYears[centYears.length-1]+100);
+
+    var ticks = centYears.map(function(yr){
+      var manual = STATE.timeAnchors[String(yr)];
+      var x = (manual!=null) ? manual : (MARGIN_L + (yr-startCent)*PX_PER_YEAR);
+      return {year:yr, x:x};
+    });
+    for(var i=1;i<ticks.length;i++){
+      if(ticks[i].x <= ticks[i-1].x + MIN_ANCHOR_GAP) ticks[i].x = ticks[i-1].x + MIN_ANCHOR_GAP;
     }
+
     function yearToX(year){
-      if(!ticks.length) return MARGIN_L;
       var first=ticks[0], last=ticks[ticks.length-1];
       if(year<=first.year) return first.x-(first.year-year)*PX_PER_YEAR;
       if(year>=last.year) return last.x+(year-last.year)*PX_PER_YEAR;
@@ -131,7 +138,7 @@
       }
       return last.x;
     }
-    return {yearToX:yearToX, maxX: ticks.length?ticks[ticks.length-1].x:MARGIN_L};
+    return {yearToX:yearToX, maxX: ticks[ticks.length-1].x, ticks:ticks};
   }
   function computeLayout(){
     var active = activeCatIds || STATE.categories.map(function(c){ return c.id; });
@@ -143,7 +150,7 @@
     var maxY = years.length ? Math.max.apply(null,years) : 2026;
     if(minY===maxY){ minY-=10; maxY+=10; }
 
-    var scale = buildYearToX(activePeople);
+    var scale = buildYearToX(minY, maxY);
     var xOf = {};
     activePeople.forEach(function(p){ xOf[p.id] = scale.yearToX(p.sortYear); });
 
@@ -196,7 +203,7 @@
     var scrollEl = document.getElementById("stageScroll");
     var minCanvasWidth = (scrollEl && scrollEl.clientWidth) ? scrollEl.clientWidth : 900;
 
-    return {pos:pos, minY:minY, maxY:maxY, width:Math.max(width,minCanvasWidth), height:height, activeCats:activeCats, laneTop:laneTop, rowCountByCat:rowCountByCat, yearToX:scale.yearToX};
+    return {pos:pos, minY:minY, maxY:maxY, width:Math.max(width,minCanvasWidth), height:height, activeCats:activeCats, laneTop:laneTop, rowCountByCat:rowCountByCat, yearToX:scale.yearToX, ticks:scale.ticks};
   }
 
   function fmtYear(y){
@@ -275,7 +282,7 @@
 
   var stage, laneCol, emptyHint;
   var nodeEls={}, edgeEls=[];
-  var dragState=null, justDraggedId=null;
+  var dragState=null, justDraggedId=null, yearDragState=null;
   function svgPoint(e){
     var pt = stage.createSVGPoint();
     pt.x=e.clientX; pt.y=e.clientY;
@@ -336,18 +343,43 @@
     var yearRow=document.getElementById("yearRow");
     yearRow.style.width = layout.width+"px";
     yearRow.innerHTML="";
-    (function(){
-      var startCent = Math.floor(layout.minY/100)*100;
-      for(var yr=startCent; yr<=layout.maxY+100; yr+=100){
-        var x = layout.yearToX(yr);
-        if(x<MARGIN_L-5 || x>layout.width-10) continue;
-        var t=document.createElement("div");
-        t.className="year-tick";
-        t.style.left=x+"px";
-        t.textContent=fmtYear(yr);
-        yearRow.appendChild(t);
-      }
-    })();
+    layout.ticks.forEach(function(tick, i){
+      var t=document.createElement("div");
+      t.className="year-tick";
+      t.style.left=tick.x+"px";
+      t.textContent=fmtYear(tick.year);
+      var prevX = i>0 ? layout.ticks[i-1].x : null;
+      var nextX = i<layout.ticks.length-1 ? layout.ticks[i+1].x : null;
+      t.addEventListener("pointerdown", function(year,el,lo,hi){ return function(e){
+        e.stopPropagation();
+        yearDragState = {year:year, startClientX:e.clientX, startX:tick.x, el:el, moved:false, lo:lo, hi:hi};
+        try{ el.setPointerCapture(e.pointerId); }catch(err){}
+      }; }(tick.year, t, prevX, nextX));
+      t.addEventListener("pointermove", function(el){ return function(e){
+        if(!yearDragState || yearDragState.el!==el) return;
+        var dx = e.clientX - yearDragState.startClientX;
+        if(Math.abs(dx)>3) yearDragState.moved=true;
+        if(yearDragState.moved){
+          var nx = yearDragState.startX+dx;
+          if(yearDragState.lo!=null) nx = Math.max(nx, yearDragState.lo+MIN_ANCHOR_GAP);
+          if(yearDragState.hi!=null) nx = Math.min(nx, yearDragState.hi-MIN_ANCHOR_GAP);
+          el.style.left = nx+"px";
+        }
+      }; }(t));
+      t.addEventListener("pointerup", function(el){ return function(e){
+        if(!yearDragState || yearDragState.el!==el) return;
+        if(yearDragState.moved){
+          var dx = e.clientX - yearDragState.startClientX;
+          var nx = yearDragState.startX+dx;
+          if(yearDragState.lo!=null) nx = Math.max(nx, yearDragState.lo+MIN_ANCHOR_GAP);
+          if(yearDragState.hi!=null) nx = Math.min(nx, yearDragState.hi-MIN_ANCHOR_GAP);
+          STATE.timeAnchors[String(yearDragState.year)] = nx;
+          commit();
+        }
+        yearDragState = null;
+      }; }(t));
+      yearRow.appendChild(t);
+    });
 
     // bg stars
     var bg=el("g",{"aria-hidden":"true"});
@@ -358,14 +390,13 @@
     }
     stage.appendChild(bg);
 
-    // century gridlines (labels now render in the sticky #yearRow header instead)
+    // century gridlines (labels render in the sticky, draggable #yearRow header instead)
     var gl=el("g",{"aria-hidden":"true"});
-    var startCent2 = Math.floor(layout.minY/100)*100;
-    for(var yr2=startCent2; yr2<=layout.maxY+100; yr2+=100){
-      var xg = layout.yearToX(yr2);
-      if(xg<MARGIN_L-5 || xg>layout.width-10) continue;
+    layout.ticks.forEach(function(tick){
+      var xg = tick.x;
+      if(xg<MARGIN_L-5 || xg>layout.width-10) return;
       gl.appendChild(el("line",{x1:xg,y1:0,x2:xg,y2:layout.height-MARGIN_BOTTOM+6,class:"grid-line"}));
-    }
+    });
     stage.appendChild(gl);
 
     // lane band dividers

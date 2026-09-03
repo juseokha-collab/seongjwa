@@ -141,8 +141,10 @@
   }
   .year-tick{
     position:absolute; top:9px; transform:translateX(-50%);
-    font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--text-muted); white-space:nowrap;
+    font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; color:var(--text-secondary); white-space:nowrap;
+    cursor:ew-resize; user-select:none; touch-action:none; padding:2px 5px; border-radius:5px;
   }
+  .year-tick:hover{background:var(--bg-elevated); color:var(--text-primary);}
   #stage{display:block; flex:none;}
 
   .node{cursor:grab; outline:none; touch-action:none;}

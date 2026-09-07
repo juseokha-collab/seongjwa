@@ -160,13 +160,15 @@
     activeCats.forEach(function(c){
       var members = activePeople.filter(function(p){ return p.catId===c.id; })
         .sort(function(a,b){ return xOf[a.id]-xOf[b.id]; });
-      var rowEnds = []; // {x, hw} of the last-placed label in each row (holes allowed)
+      var rowEnds = []; // {x, hw} of the last-placed label in each integer row slot (holes allowed)
+      var maxRow = 0; // tracks the tallest row actually used, including fractional manual positions
       members.forEach(function(p){
         var x = xOf[p.id];
         var hw = labelHalfWidth(p);
         if(p.manualRow!=null){
           subRowOf[p.id]=p.manualRow;
-          rowEnds[p.manualRow]={x:x,hw:hw};
+          rowEnds[Math.round(p.manualRow)]={x:x,hw:hw};
+          if(p.manualRow>maxRow) maxRow=p.manualRow;
           return;
         }
         var placed = false;
@@ -180,8 +182,9 @@
           for(var k=0;k<rowEnds.length;k++){ if(!rowEnds[k]){ newRow=k; break; } }
           subRowOf[p.id]=newRow; rowEnds[newRow]={x:x,hw:hw};
         }
+        if(subRowOf[p.id]>maxRow) maxRow=subRowOf[p.id];
       });
-      rowCountByCat[c.id] = Math.max(1, rowEnds.length);
+      rowCountByCat[c.id] = Math.max(1, Math.ceil(maxRow)+1);
     });
 
     var laneTop = {};
@@ -533,12 +536,17 @@
     if(!currentId) return;
     var p = personOf(currentId);
     if(!p) return;
-    var layout = computeLayout();
-    var pos = layout.pos[p.id];
-    if(!pos) return;
-    var laneTop = layout.laneTop[p.catId];
-    var curRow = Math.round((pos.y - laneTop - SUBROW_H/2)/SUBROW_H);
-    p.manualRow = Math.max(0, curRow + delta);
+    var base;
+    if(p.manualRow!=null){
+      base = p.manualRow;
+    } else {
+      var layout = computeLayout();
+      var pos = layout.pos[p.id];
+      if(!pos) return;
+      var laneTop = layout.laneTop[p.catId];
+      base = (pos.y - laneTop - SUBROW_H/2)/SUBROW_H;
+    }
+    p.manualRow = Math.max(0, base + delta);
     commit();
   }
   function initRowNudge(){
@@ -548,7 +556,7 @@
       var tag = (e.target && e.target.tagName || "").toLowerCase();
       if(tag==="input" || tag==="textarea" || tag==="select" || (e.target && e.target.isContentEditable)) return;
       e.preventDefault();
-      nudgeRow(e.key==="ArrowUp" ? -1 : 1);
+      nudgeRow(e.key==="ArrowUp" ? -0.25 : 0.25);
     });
   }
 
@@ -767,6 +775,12 @@
   }
 
   function initModal(){
+    // Pressing Enter to confirm a Korean IME syllable can also trigger the form's
+    // native "Enter submits" behavior before that last character is committed to
+    // the field's value, silently dropping it. Block only that composing case.
+    document.getElementById("pmForm").addEventListener("keydown",function(e){
+      if(e.key==="Enter" && (e.isComposing || e.keyCode===229)) e.preventDefault();
+    });
     document.getElementById("pmCat").addEventListener("change",function(){
       var newField=document.getElementById("pmNewCat");
       if(this.value==="__new__"){ newField.style.display="block"; newField.focus(); }

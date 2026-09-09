@@ -422,7 +422,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1788739023"></script>
+<script src="app.js?v=1788935340"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;
@@ -465,23 +465,29 @@
   auth.onAuthStateChanged(function(user){
     renderAuth(user);
     if(unsub){ unsub(); unsub=null; }
-    if(!user){ docRef=null; lastJson=null; SEONGJWA.onSave=null; return; }
+    if(!user){ docRef=null; lastJson=null; SEONGJWA.onSave=null; if(SEONGJWA.setSyncing) SEONGJWA.setSyncing(false); return; }
+    if(SEONGJWA.setSyncing) SEONGJWA.setSyncing(true);
     docRef=db.collection("users").doc(user.uid).collection("seongjwa").doc("state");
     docRef.get().then(function(snap){
       var d=snap.exists?snap.data():null;
       if(d && d.json){
         lastJson=d.json;
-        applying=true; try{ SEONGJWA.replace(JSON.parse(d.json)); }catch(e){} applying=false;
-      }else{
+        applying=true; try{ SEONGJWA.replace(JSON.parse(d.json)); }catch(e){ console.warn("cloud state parse failed, leaving local state untouched", e); } applying=false;
+      }else if(!snap.exists){
+        // genuinely no cloud copy yet for this account — safe to seed it from local state
         pushNow();
+      }else{
+        // doc exists but looks malformed; don't risk overwriting it with a blank/local push
+        console.warn("cloud doc exists but has no json field — leaving it untouched");
       }
+      if(SEONGJWA.setSyncing) SEONGJWA.setSyncing(false);
       unsub=docRef.onSnapshot(function(doc){
         if(!doc.exists || doc.metadata.hasPendingWrites) return;
         var dd=doc.data(); if(!dd||!dd.json||dd.json===lastJson) return;
         lastJson=dd.json;
         applying=true; try{ SEONGJWA.replace(JSON.parse(dd.json)); }catch(e){} applying=false;
       });
-    }).catch(function(e){ console.warn("sync load fail", e); });
+    }).catch(function(e){ console.warn("sync load fail", e); if(SEONGJWA.setSyncing) SEONGJWA.setSyncing(false); });
     SEONGJWA.onSave=function(){ if(applying) return; schedulePush(); };
   });
 })();

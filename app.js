@@ -285,7 +285,7 @@
 
   var stage, laneCol, emptyHint;
   var nodeEls={}, edgeEls=[];
-  var dragState=null, justDraggedId=null;
+  var dragState=null, justDraggedId=null, cloudSyncing=false;
   function svgPoint(e){
     var pt = stage.createSVGPoint();
     pt.x=e.clientX; pt.y=e.clientY;
@@ -328,7 +328,20 @@
     stage.innerHTML="";
     nodeEls={}; edgeEls=[];
 
-    emptyHint.style.display = STATE.people.length ? "none" : "flex";
+    if(STATE.people.length){
+      emptyHint.style.display = "none";
+    } else {
+      emptyHint.style.display = "flex";
+      var hintP = emptyHint.querySelector("p");
+      var hintBtn = document.getElementById("emptyAddBtn");
+      if(cloudSyncing){
+        if(hintP) hintP.innerHTML = "☁ 클라우드에서 기록을 불러오는 중입니다...<br>잠시만 기다려주세요.";
+        if(hintBtn) hintBtn.style.display = "none";
+      } else {
+        if(hintP) hintP.innerHTML = "아직 추가된 인물이 없어요.<br>관심 있는 인물부터 하나씩 채워보세요.";
+        if(hintBtn) hintBtn.style.display = "";
+      }
+    }
 
     // lane label column (offset down by YEAR_ROW_H to line up with the svg, which sits below the sticky year header)
     laneCol.style.height = (layout.height+YEAR_ROW_H)+"px";
@@ -1046,6 +1059,10 @@
       }
       persistLocal();
       renderAll();
+    },
+    setSyncing: function(v){
+      cloudSyncing = !!v;
+      if(stage) renderAll();
     },
     onSave: null
   };

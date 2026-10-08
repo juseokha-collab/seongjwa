@@ -124,8 +124,11 @@
       activePeople.forEach(function(p){ if(p.sortYear>=centYr && p.sortYear<centYr+100) set[p.sortYear]=true; });
       return Object.keys(set).length;
     }
+    // visibility depends only on actual content — a stray manual drag saved on an empty
+    // century from earlier testing should not keep it pinned visible forever; the manual
+    // x position is still honored below for whichever ticks DO qualify by population
     var relevant = allCentYears.filter(function(yr){
-      return STATE.timeAnchors[String(yr)]!=null || yearsIn(yr)>0;
+      return yearsIn(yr)>0;
     });
     if(!relevant.length) relevant=[allCentYears[0]];
     if(relevant.length<2) relevant.push(relevant[0]+100);

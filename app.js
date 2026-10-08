@@ -104,38 +104,43 @@
 
   // ---------------- layout ----------------
   var MIN_ANCHOR_GAP = 60;      // minimum spacing enforced only around manually-dragged ticks
-  var EMPTY_CENTURY_GAP = 8;    // default width for a century with nobody in it — barely there
   var POP_CENTURY_BASE_GAP = 240; // default width for a century with at least one person
   var PER_YEAR_WIDTH = 70;      // extra width per distinct birth-year packed into a century
   // The scale is defined by century marks the user can drag left/right (see #yearRow).
-  // Dragging a mark left narrows the span before it (and widens the one after); dragging
-  // it right does the opposite. Anywhere the user hasn't dragged, the default spacing is
-  // NOT uniform: a century with nobody in it collapses to almost nothing, and a century
-  // packed with people gets flexibly wider on its own. The minimum-gap safety clamp only
-  // applies around manual positions (auto-computed gaps are already monotonic by construction
-  // and are allowed to go smaller than that so empty stretches can collapse hard).
+  // Only centuries that actually contain a person (or that the user has manually
+  // positioned) get a tick at all — an empty stretch of history shows nothing, not even
+  // a collapsed placeholder. Add someone in a given century and its start-of-century mark
+  // appears on its own. Centuries with more distinct birth years get flexibly wider.
   function buildYearToX(minY, maxY, activePeople){
     var startCent = Math.floor(minY/100)*100;
     var endCent = Math.ceil(maxY/100)*100;
     if(endCent<=startCent) endCent = startCent+100;
-    var centYears = [];
-    for(var yr=startCent; yr<=endCent; yr+=100) centYears.push(yr);
-    if(centYears.length<2) centYears.push(centYears[centYears.length-1]+100);
+    var allCentYears = [];
+    for(var yr=startCent; yr<=endCent; yr+=100) allCentYears.push(yr);
+    if(allCentYears.length<2) allCentYears.push(allCentYears[allCentYears.length-1]+100);
 
-    var firstManual = STATE.timeAnchors[String(centYears[0])];
-    var ticks = [{year:centYears[0], x: firstManual!=null ? firstManual : MARGIN_L, manual: firstManual!=null}];
-    for(var i=1;i<centYears.length;i++){
-      var yr=centYears[i];
+    function yearsIn(centYr){
+      var set={};
+      activePeople.forEach(function(p){ if(p.sortYear>=centYr && p.sortYear<centYr+100) set[p.sortYear]=true; });
+      return Object.keys(set).length;
+    }
+    var relevant = allCentYears.filter(function(yr){
+      return STATE.timeAnchors[String(yr)]!=null || yearsIn(yr)>0;
+    });
+    if(!relevant.length) relevant=[allCentYears[0]];
+    if(relevant.length<2) relevant.push(relevant[0]+100);
+
+    var ticks=[];
+    for(var i=0;i<relevant.length;i++){
+      var yr=relevant[i];
       var manual = STATE.timeAnchors[String(yr)];
-      if(manual!=null){
-        ticks.push({year:yr, x:manual, manual:true});
+      if(i===0){
+        ticks.push({year:yr, x: manual!=null?manual:MARGIN_L, manual: manual!=null});
         continue;
       }
-      var segStart=centYears[i-1];
-      var yearsInSeg = {};
-      activePeople.forEach(function(p){ if(p.sortYear>=segStart && p.sortYear<yr) yearsInSeg[p.sortYear]=true; });
-      var count = Object.keys(yearsInSeg).length;
-      var gap = count>0 ? Math.max(POP_CENTURY_BASE_GAP, count*PER_YEAR_WIDTH) : EMPTY_CENTURY_GAP;
+      if(manual!=null){ ticks.push({year:yr, x:manual, manual:true}); continue; }
+      var count = yearsIn(yr);
+      var gap = Math.max(POP_CENTURY_BASE_GAP, count*PER_YEAR_WIDTH);
       ticks.push({year:yr, x: ticks[i-1].x + gap, manual:false});
     }
     for(var j=1;j<ticks.length;j++){

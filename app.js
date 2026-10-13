@@ -38,7 +38,7 @@
 
   function normalizeState(s){
     s.categories.forEach(function(c){ if(!c.subs) c.subs=[]; });
-    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; if(p.bioHtml===undefined) p.bioHtml=null; });
+    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; if(p.bioHtml===undefined) p.bioHtml=null; if(p.manualX===undefined) p.manualX=null; });
     if(!s.timeAnchors) s.timeAnchors={};
     return s;
   }
@@ -178,7 +178,7 @@
 
     var scale = buildYearToX(minY, maxY, activePeople);
     var xOf = {};
-    activePeople.forEach(function(p){ xOf[p.id] = scale.yearToX(p.sortYear); });
+    activePeople.forEach(function(p){ xOf[p.id] = p.manualX!=null ? p.manualX : scale.yearToX(p.sortYear); });
 
     // pack people within each category into sub-rows so close-in-time people stack vertically
     // instead of being pushed apart horizontally (which would distort the timeline)
@@ -319,6 +319,19 @@
     if(!ctm) return {x:0,y:0};
     var p = pt.matrixTransform(ctm.inverse());
     return {x:p.x, y:p.y};
+  }
+  // chronological x-bounds: however freely a node is nudged left/right, it must never
+  // cross a person born earlier (to its left) or later (to its right)
+  function chronoXBounds(p, layout){
+    var prevX=null, nextX=null, prevY=null, nextY=null;
+    STATE.people.forEach(function(q){
+      if(q.id===p.id) return;
+      var qpos=layout.pos[q.id];
+      if(!qpos) return;
+      if(q.sortYear<=p.sortYear && (prevY===null || q.sortYear>prevY)){ prevY=q.sortYear; prevX=qpos.x; }
+      if(q.sortYear>=p.sortYear && (nextY===null || q.sortYear<nextY)){ nextY=q.sortYear; nextX=qpos.x; }
+    });
+    return {prevX:prevX, nextX:nextX};
   }
 
   function renderAll(){
@@ -498,27 +511,38 @@
       g.addEventListener("mouseenter", function(pp){ return function(e){ if(!dragState) showTooltip(pp,e); }; }(p));
       g.addEventListener("mousemove", function(e){ if(!dragState) positionTooltip(e); });
       g.addEventListener("mouseleave", hideTooltip);
-      g.addEventListener("pointerdown", function(pp,gg,startPos,catLaneTop){ return function(e){
+      g.addEventListener("pointerdown", function(pp,gg,startPos,catLaneTop,xBounds){ return function(e){
         if(e.button!=null && e.button!==0) return;
         e.preventDefault();
         e.stopPropagation();
         hideTooltip();
         dragState = gg; // marks "a drag is in progress on this element" for the tooltip/click guards
-        var startSvgY = svgPoint(e).y;
+        var start = svgPoint(e);
         var st = {moved:false};
         function onMove(ev){
-          var dy = svgPoint(ev).y - startSvgY;
-          if(Math.abs(dy)>3) st.moved=true;
-          if(st.moved) gg.setAttribute("transform","translate(0,"+dy+")");
+          var cur = svgPoint(ev);
+          var dx = cur.x-start.x, dy = cur.y-start.y;
+          if(Math.abs(dx)>3 || Math.abs(dy)>3) st.moved=true;
+          if(st.moved) gg.setAttribute("transform","translate("+dx+","+dy+")");
         }
         function onUp(ev){
           document.removeEventListener("pointermove", onMove);
           document.removeEventListener("pointerup", onUp);
           dragState = null;
           if(st.moved){
-            var dy = svgPoint(ev).y - startSvgY;
+            var cur = svgPoint(ev);
+            var dx = cur.x-start.x, dy = cur.y-start.y;
             var finalY = startPos.y + dy;
             pp.manualRow = Math.max(0, Math.round((finalY - catLaneTop - SUBROW_H/2)/SUBROW_H));
+            var finalX = startPos.x + dx;
+            var PAD = 14;
+            if(xBounds.prevX!=null && xBounds.nextX!=null && xBounds.prevX+PAD > xBounds.nextX-PAD){
+              finalX = (xBounds.prevX+xBounds.nextX)/2;
+            } else {
+              if(xBounds.prevX!=null) finalX = Math.max(finalX, xBounds.prevX+PAD);
+              if(xBounds.nextX!=null) finalX = Math.min(finalX, xBounds.nextX-PAD);
+            }
+            pp.manualX = finalX;
             gg.removeAttribute("transform");
             justDraggedId = pp.id;
             setTimeout(function(){ justDraggedId=null; }, 300);
@@ -527,7 +551,7 @@
         }
         document.addEventListener("pointermove", onMove);
         document.addEventListener("pointerup", onUp);
-      }; }(p, g, pos, layout.laneTop[p.catId]));
+      }; }(p, g, pos, layout.laneTop[p.catId], chronoXBounds(p, layout)));
       nodeLayer.appendChild(g);
       nodeEls[p.id]=g;
     });
@@ -629,7 +653,7 @@
     html+='<div class="panel-actions"><button class="mini-btn" id="editPersonBtn">수정</button><button class="mini-btn danger" id="deletePersonBtn">삭제</button></div>';
     html+='<h2>'+escapeHtml(p.name)+' <span class="update-count" title="수정 횟수">('+(p.updateCount||0)+')</span></h2>';
     html+='<div class="years">'+escapeHtml(panelYearsLabel(p))+
-      (p.manualRow!=null ? ' <button type="button" class="mini-btn" id="resetRowBtn" title="자동 배치로 되돌리기">위치 초기화</button>' : '')+
+      ((p.manualRow!=null||p.manualX!=null) ? ' <button type="button" class="mini-btn" id="resetRowBtn" title="자동 배치로 되돌리기">위치 초기화</button>' : '')+
       '</div>';
     var bioContent = p.bioHtml ? sanitizeRichHtml(p.bioHtml) : escapeHtml(p.bio||"").replace(/\n/g,"<br>");
     html+='<p class="bio">'+bioContent+'</p>';
@@ -675,7 +699,7 @@
     document.getElementById("panelClose").addEventListener("click",function(e){ e.stopPropagation(); clearSelection(); });
     document.getElementById("editPersonBtn").addEventListener("click",function(){ openPersonModal(p.id); });
     var resetRowBtn=document.getElementById("resetRowBtn");
-    if(resetRowBtn) resetRowBtn.addEventListener("click",function(){ p.manualRow=null; commit(); });
+    if(resetRowBtn) resetRowBtn.addEventListener("click",function(){ p.manualRow=null; p.manualX=null; commit(); });
     document.getElementById("deletePersonBtn").addEventListener("click",function(){
       if(!confirm(p.name+"을(를) 삭제할까요? 연결된 관계도 함께 삭제됩니다.")) return;
       STATE.people = STATE.people.filter(function(x){ return x.id!==p.id; });

@@ -504,6 +504,8 @@
       var color = personColor(p);
       var g=el("g",{class:"node", tabindex:"0", role:"button", "aria-label":p.name+", "+yearsLabel(p)+(c?(", "+c.name):""), "data-id":p.id});
       g.appendChild(el("circle",{class:"ring", cx:pos.x, cy:pos.y, r:11, fill:"none", stroke:"transparent"}));
+      var labelW = labelHalfWidth(p)*2+10;
+      g.appendChild(el("rect",{class:"label-bg", x:pos.x-labelW/2, y:pos.y-37, width:labelW, height:29, rx:5}));
       g.appendChild(el("circle",{class:"core", cx:pos.x, cy:pos.y, r:5.5, fill:color, filter:"url(#starglow)"}));
       var name=el("text",{x:pos.x, y:pos.y-24, "text-anchor":"middle"});
       name.textContent = p.name;

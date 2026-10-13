@@ -239,16 +239,22 @@
     y = Math.round(y);
     return y<0 ? ("BC "+(-y)) : (""+y);
   }
-  function yearsLabel(p){
-    return fmtYear(p.sortYear);
-  }
-  function panelYearsLabel(p){
-    if(p.deathYear==null) return fmtYear(p.sortYear);
+  function ageAtDeath(p){
+    if(p.deathYear==null) return null;
     var age = p.deathYear - p.sortYear;
     if(p.birthMonth!=null && p.deathMonth!=null){
       var earlier = p.deathMonth < p.birthMonth || (p.deathMonth===p.birthMonth && p.birthDay!=null && p.deathDay!=null && p.deathDay<p.birthDay);
       if(earlier) age -= 1;
     }
+    return age;
+  }
+  function yearsLabel(p){
+    var age = ageAtDeath(p);
+    return fmtYear(p.sortYear) + (age!=null ? ("("+age+")") : "");
+  }
+  function panelYearsLabel(p){
+    var age = ageAtDeath(p);
+    if(age==null) return fmtYear(p.sortYear);
     return fmtYear(p.sortYear)+"-"+fmtYear(p.deathYear)+" ("+age+")";
   }
   function parseDateInput(str){
@@ -323,13 +329,16 @@
   // chronological x-bounds: however freely a node is nudged left/right, it must never
   // cross a person born earlier (to its left) or later (to its right)
   function chronoXBounds(p, layout){
+    // people who share the exact same birth year move together as one unit (see onUp
+    // below), so they aren't a boundary against each other — only a strictly earlier or
+    // later year can block the drag
     var prevX=null, nextX=null, prevY=null, nextY=null;
     STATE.people.forEach(function(q){
-      if(q.id===p.id) return;
+      if(q.id===p.id || q.sortYear===p.sortYear) return;
       var qpos=layout.pos[q.id];
       if(!qpos) return;
-      if(q.sortYear<=p.sortYear && (prevY===null || q.sortYear>prevY)){ prevY=q.sortYear; prevX=qpos.x; }
-      if(q.sortYear>=p.sortYear && (nextY===null || q.sortYear<nextY)){ nextY=q.sortYear; nextX=qpos.x; }
+      if(q.sortYear<p.sortYear && (prevY===null || q.sortYear>prevY)){ prevY=q.sortYear; prevX=qpos.x; }
+      if(q.sortYear>p.sortYear && (nextY===null || q.sortYear<nextY)){ nextY=q.sortYear; nextX=qpos.x; }
     });
     return {prevX:prevX, nextX:nextX};
   }
@@ -542,7 +551,7 @@
               if(xBounds.prevX!=null) finalX = Math.max(finalX, xBounds.prevX+PAD);
               if(xBounds.nextX!=null) finalX = Math.min(finalX, xBounds.nextX-PAD);
             }
-            pp.manualX = finalX;
+            STATE.people.forEach(function(q){ if(q.sortYear===pp.sortYear) q.manualX = finalX; });
             gg.removeAttribute("transform");
             justDraggedId = pp.id;
             setTimeout(function(){ justDraggedId=null; }, 300);

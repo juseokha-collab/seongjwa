@@ -171,6 +171,13 @@
   .edge{fill:none; stroke:var(--edge-ink); stroke-width:1.6; transition:opacity .2s ease, stroke .2s ease, stroke-width .2s ease;}
   .edge.active-edge{stroke:var(--star-glow); stroke-width:2.2;}
 
+  .conn-group{display:none; pointer-events:none;}
+  .conn-group.conn-visible{display:block;}
+  .conn-edge{fill:none; stroke:#e8495a; stroke-width:1.6; stroke-dasharray:3 4; opacity:.9;}
+  .conn-node{pointer-events:auto;}
+  .conn-node circle.conn-core{fill:#e8495a; filter:url(#starglow);}
+  .conn-node text.conn-label{font-family:Consolas,"JetBrains Mono",monospace; font-size:11px; fill:#f1a3ab; text-anchor:middle; pointer-events:none;}
+
   .grid-line{stroke:var(--line-faint); stroke-dasharray:2 5;}
   .lane-divider{stroke:var(--line-faint); opacity:.7;}
   .bg-star{fill:var(--star-dust);}
@@ -328,6 +335,10 @@
   .field-row .field select,
   .field-row .field .field-stack{flex:1; min-width:0;}
   .field-stack{display:flex; flex-direction:column; gap:6px;}
+  .conn-row{display:flex; gap:8px; margin-bottom:6px;}
+  .conn-row input{flex:1; min-width:0;}
+  .conn-row .conn-remove{flex:none; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:.9rem; padding:0 4px;}
+  .conn-row .conn-remove:hover{color:var(--danger,#e05a5a);}
   .modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:20px;}
 
   @media (max-width:760px){
@@ -429,6 +440,11 @@
         </div>
       </div>
       <div class="field">
+        <label title="선택한 인물을 클릭하면 해당 출생연도 위치에 점선으로 연결되어 나타납니다">인연</label>
+        <div id="pmConnList"></div>
+        <button type="button" class="mini-btn" id="pmConnAddBtn">+ 인연 추가</button>
+      </div>
+      <div class="field">
         <label for="pmBio">한줄 소개</label>
         <div class="rte-toolbar" id="rteToolbar">
           <button type="button" class="rte-btn" data-cmd="bold" title="볼드"><b>B</b></button>
@@ -465,7 +481,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1792044378"></script>
+<script src="app.js?v=1792045037"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

@@ -38,7 +38,7 @@
 
   function normalizeState(s){
     s.categories.forEach(function(c){ if(!c.subs) c.subs=[]; });
-    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; if(p.bioHtml===undefined) p.bioHtml=null; if(p.manualX===undefined) p.manualX=null; if(p.fullName===undefined) p.fullName=null; if(p.nationality===undefined) p.nationality=null; });
+    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; if(p.bioHtml===undefined) p.bioHtml=null; if(p.manualX===undefined) p.manualX=null; if(p.fullName===undefined) p.fullName=null; if(p.nationality===undefined) p.nationality=null; if(p.connections===undefined) p.connections=[]; });
     if(!s.timeAnchors) s.timeAnchors={};
     return s;
   }
@@ -317,7 +317,7 @@
   }
 
   var stage, laneCol, emptyHint;
-  var nodeEls={}, edgeEls=[];
+  var nodeEls={}, edgeEls=[], connGroups={};
   var dragState=null, justDraggedId=null, cloudSyncing=false;
   function svgPoint(e){
     var pt = stage.createSVGPoint();
@@ -569,6 +569,39 @@
     });
     stage.appendChild(nodeLayer);
 
+    // connection stars — hidden until their parent person is selected (see highlightSelection)
+    var connLayer=el("g",{class:"conn-layer"});
+    connGroups={};
+    STATE.people.forEach(function(p){
+      if(!p.connections || !p.connections.length) return;
+      var pos = layout.pos[p.id];
+      if(!pos) return;
+      var g=el("g",{class:"conn-group"});
+      p.connections.forEach(function(conn){
+        if(conn.sortYear==null) return;
+        var cx = layout.yearToX(conn.sortYear), cy = pos.y;
+        var ddx=cx-pos.x, ddy=cy-pos.y;
+        var dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
+        var NODE_R=7;
+        var endX=cx-ddx/dlen*NODE_R, endY=cy-ddy/dlen*NODE_R;
+        g.appendChild(el("path",{class:"conn-edge", d:"M"+pos.x+","+pos.y+" L"+endX+","+endY, "stroke-linecap":"round"}));
+        var ng=el("g",{class:"conn-node"});
+        ng.appendChild(el("circle",{class:"conn-core", cx:cx, cy:cy, r:4.5}));
+        var label=el("text",{class:"conn-label", x:cx, y:cy-12});
+        label.textContent = conn.name;
+        ng.appendChild(label);
+        if(conn.note){
+          var titleEl=el("title",{});
+          titleEl.textContent = conn.note;
+          ng.appendChild(titleEl);
+        }
+        g.appendChild(ng);
+      });
+      connLayer.appendChild(g);
+      connGroups[p.id]=g;
+    });
+    stage.appendChild(connLayer);
+
     if(currentId){
       if(nodeEls[currentId]) highlightSelection(currentId);
       else clearSelection();
@@ -586,6 +619,9 @@
     Object.keys(nodeEls).forEach(function(nid){
       nodeEls[nid].classList.toggle("active-node", !!relatedIds[nid]);
     });
+    Object.keys(connGroups).forEach(function(pid){
+      connGroups[pid].classList.toggle("conn-visible", pid===id);
+    });
   }
 
   function clearSelection(){
@@ -594,6 +630,7 @@
     stage.classList.remove("selected-fade");
     Object.keys(nodeEls).forEach(function(nid){ nodeEls[nid].classList.remove("active-node"); });
     edgeEls.forEach(function(l){ l.classList.remove("active-edge"); });
+    Object.keys(connGroups).forEach(function(pid){ connGroups[pid].classList.remove("conn-visible"); });
     var panel=document.getElementById("panel");
     panel.classList.remove("open"); panel.setAttribute("aria-hidden","true");
   }
@@ -931,6 +968,7 @@
     document.getElementById("pmYear").value = p ? formatDateInput(p.sortYear, p.birthMonth, p.birthDay) : "";
     document.getElementById("pmDeathYear").value = p ? formatDateInput(p.deathYear, p.deathMonth, p.deathDay) : "";
     document.getElementById("pmNationality").value = p ? (p.nationality||"") : "";
+    renderConnRows(p ? p.connections : []);
     var bioEl=document.getElementById("pmBio");
     if(p){
       bioEl.innerHTML = p.bioHtml ? sanitizeRichHtml(p.bioHtml) : escapeHtml(p.bio||"").replace(/\n/g,"<br>");
@@ -947,6 +985,26 @@
     modal.classList.add("open");
     modal.setAttribute("aria-hidden","false");
     document.getElementById("pmName").focus();
+  }
+  function renderConnRows(connections){
+    var wrap=document.getElementById("pmConnList");
+    wrap.innerHTML="";
+    (connections||[]).forEach(function(c){ addConnRow(c); });
+  }
+  function addConnRow(conn){
+    var wrap=document.getElementById("pmConnList");
+    var row=document.createElement("div");
+    row.className="conn-row";
+    row.innerHTML =
+      '<input type="text" class="conn-name" placeholder="인연">'+
+      '<input type="text" class="conn-year" placeholder="출생 (예: 1800)">'+
+      '<input type="text" class="conn-note" placeholder="비고">'+
+      '<button type="button" class="conn-remove" aria-label="인연 삭제">✕</button>';
+    row.querySelector(".conn-name").value = conn ? (conn.name||"") : "";
+    row.querySelector(".conn-year").value = conn ? formatDateInput(conn.sortYear, conn.birthMonth, conn.birthDay) : "";
+    row.querySelector(".conn-note").value = conn ? (conn.note||"") : "";
+    row.querySelector(".conn-remove").addEventListener("click", function(){ row.remove(); });
+    wrap.appendChild(row);
   }
   function renderCatOptions(selectedId){
     var sel=document.getElementById("pmCat");
@@ -988,6 +1046,7 @@
       else newField.style.display="none";
     });
     initRichToolbar();
+    document.getElementById("pmConnAddBtn").addEventListener("click", function(){ addConnRow(null); });
     document.getElementById("pmCancel").addEventListener("click", closePersonModal);
     document.getElementById("pmClose").addEventListener("click", closePersonModal);
     document.getElementById("addPersonBtn").addEventListener("click", function(){ openPersonModal(null); });
@@ -1022,8 +1081,17 @@
       } else if(subSel!==""){
         subId = subSel;
       }
+      var connections = [];
+      document.querySelectorAll("#pmConnList .conn-row").forEach(function(row){
+        var cname = row.querySelector(".conn-name").value.trim();
+        if(!cname) return;
+        var cnote = row.querySelector(".conn-note").value.trim();
+        var cyearRaw = row.querySelector(".conn-year").value.trim();
+        var cy = cyearRaw ? parseDateInput(cyearRaw) : null;
+        connections.push({id:uid("conn"), name:cname, sortYear: cy?cy.y:null, birthMonth: cy?cy.m:null, birthDay: cy?cy.d:null, note: cnote||null});
+      });
       var fields = {
-        name:name, fullName: fullName||null, nationality: nationality||null, bio:bioText, bioHtml:bioHtml, catId:catId, subId:subId,
+        name:name, fullName: fullName||null, nationality: nationality||null, connections:connections, bio:bioText, bioHtml:bioHtml, catId:catId, subId:subId,
         sortYear:birth.y, birthMonth:birth.m, birthDay:birth.d,
         deathYear: death?death.y:null, deathMonth: death?death.m:null, deathDay: death?death.d:null
       };

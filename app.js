@@ -670,8 +670,8 @@
       ((p.manualRow!=null||p.manualX!=null) ? ' <button type="button" class="mini-btn" id="resetRowBtn" title="자동 배치로 되돌리기">위치 초기화</button>' : '')+
       '</div>';
     var bioContent = p.bioHtml ? sanitizeRichHtml(p.bioHtml) : escapeHtml(p.bio||"").replace(/\n/g,"<br>");
-    html+='<p class="bio">'+linkifyHtml(bioContent)+'</p>';
     var ytUrls = extractYouTubeUrls(p.bio||"");
+    html+='<p class="bio">'+linkifyHtml(bioContent, ytUrls)+'</p>';
     if(ytUrls.length) html+='<div class="yt-cards" id="ytCards"></div>';
 
     html+='<h3>관계 · '+relLines.length+'</h3>';
@@ -836,8 +836,10 @@
   }
   // turns plain-text URLs inside already-sanitized bio HTML into real clickable links,
   // without touching anything that's already inside an <a> or re-processing twice
-  function linkifyHtml(html){
+  function linkifyHtml(html, skipUrls){
     var URL_RE = /https?:\/\/[^\s<]+/g;
+    var skipSet = {};
+    (skipUrls||[]).forEach(function(u){ skipSet[u.replace(/[).,!?;:'"]+$/,"")] = true; });
     var div = document.createElement("div");
     div.innerHTML = html;
     (function walk(node){
@@ -853,13 +855,14 @@
             if(m.index > lastIdx) frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
             var trail = "";
             var url = m[0].replace(/[).,!?;:'"]+$/, function(s){ trail = s; return ""; });
+            lastIdx = m.index + m[0].length;
+            if(skipSet[url]) continue;
             var a = document.createElement("a");
             a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer nofollow";
             a.className = "bio-link";
             a.textContent = url;
             frag.appendChild(a);
             if(trail) frag.appendChild(document.createTextNode(trail));
-            lastIdx = m.index + m[0].length;
           }
           if(lastIdx < text.length) frag.appendChild(document.createTextNode(text.slice(lastIdx)));
           node.replaceChild(frag, child);

@@ -227,6 +227,19 @@
   .update-count{font-family:"JetBrains Mono",monospace; font-size:0.8rem; font-weight:400; color:var(--text-muted);}
   .panel .years{font-family:"JetBrains Mono",monospace; color:var(--text-muted); font-size:.8rem; margin-bottom:14px;}
   .panel .bio{color:var(--text-secondary); font-size:.9rem; line-height:1.75; margin-bottom:22px;}
+  .bio-link{color:var(--gold); text-decoration:underline; text-underline-offset:2px; word-break:break-all;}
+  .bio-link:hover{color:var(--star-glow);}
+
+  .yt-cards{display:flex; flex-direction:column; gap:8px; margin:0 0 22px;}
+  .yt-card{
+    display:flex; align-items:center; gap:10px; padding:8px; border-radius:10px;
+    background:var(--bg-elevated); border:1px solid var(--line-mid); text-decoration:none; color:inherit;
+  }
+  .yt-card:hover{border-color:var(--gold);}
+  .yt-thumb, .yt-thumb-ph{width:84px; height:47px; border-radius:6px; object-fit:cover; flex:none; background:var(--bg-panel);}
+  .yt-info{min-width:0;}
+  .yt-title{font-size:.82rem; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.35;}
+  .yt-channel{font-size:.72rem; color:var(--text-muted); margin-top:3px;}
   .panel h3{font-size:.76rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; margin:0 0 10px; font-weight:400;}
 
   .rel-list{list-style:none; margin:0 0 10px; padding:0; display:flex; flex-direction:column; gap:8px;}
@@ -428,7 +441,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1791883083"></script>
+<script src="app.js?v=1792030673"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

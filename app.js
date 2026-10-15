@@ -288,7 +288,7 @@
     var sub = p.subId ? findSub(p.catId, p.subId) : null;
     var meta = panelYearsLabel(p) + (c ? (" · "+c.name+(sub?(" · "+sub.name):"")) : "");
     tt.innerHTML =
-      '<div class="tt-name">'+escapeHtml(p.name)+'</div>'+
+      '<div class="tt-name">'+escapeHtml(p.fullName||p.name)+'</div>'+
       '<div class="tt-meta">'+escapeHtml(meta)+'</div>'+
       (p.bio ? '<div class="tt-bio">'+escapeHtml(p.bio)+'</div>' : "");
     tt.style.display="block";

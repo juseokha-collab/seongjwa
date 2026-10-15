@@ -38,7 +38,7 @@
 
   function normalizeState(s){
     s.categories.forEach(function(c){ if(!c.subs) c.subs=[]; });
-    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; if(p.bioHtml===undefined) p.bioHtml=null; if(p.manualX===undefined) p.manualX=null; });
+    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; if(p.bioHtml===undefined) p.bioHtml=null; if(p.manualX===undefined) p.manualX=null; if(p.fullName===undefined) p.fullName=null; });
     if(!s.timeAnchors) s.timeAnchors={};
     return s;
   }
@@ -665,7 +665,7 @@
     var sub = p.subId ? findSub(p.catId, p.subId) : null;
     html+='<span class="badge"><span class="dot" style="background:'+color+'"></span>'+escapeHtml(c?c.name:"")+(sub?(' · '+escapeHtml(sub.name)):'')+'</span>';
     html+='<div class="panel-actions"><button class="mini-btn" id="editPersonBtn">수정</button><button class="mini-btn danger" id="deletePersonBtn">삭제</button></div>';
-    html+='<h2>'+escapeHtml(p.name)+' <span class="update-count" title="수정 횟수">('+(p.updateCount||0)+')</span></h2>';
+    html+='<h2>'+escapeHtml(p.fullName||p.name)+' <span class="update-count" title="수정 횟수">('+(p.updateCount||0)+')</span></h2>';
     html+='<div class="years">'+escapeHtml(panelYearsLabel(p))+
       ((p.manualRow!=null||p.manualX!=null) ? ' <button type="button" class="mini-btn" id="resetRowBtn" title="자동 배치로 되돌리기">위치 초기화</button>' : '')+
       '</div>';
@@ -924,6 +924,7 @@
     var modal=document.getElementById("personModal");
     document.getElementById("pmTitle").textContent = p ? "인물 수정" : "새 인물 추가";
     document.getElementById("pmName").value = p ? p.name : "";
+    document.getElementById("pmFullName").value = p ? (p.fullName||"") : "";
     document.getElementById("pmYear").value = p ? formatDateInput(p.sortYear, p.birthMonth, p.birthDay) : "";
     document.getElementById("pmDeathYear").value = p ? formatDateInput(p.deathYear, p.deathMonth, p.deathDay) : "";
     var bioEl=document.getElementById("pmBio");
@@ -989,6 +990,7 @@
     document.getElementById("pmForm").addEventListener("submit", function(e){
       e.preventDefault();
       var name=document.getElementById("pmName").value.trim();
+      var fullName=document.getElementById("pmFullName").value.trim();
       var birth = parseDateInput(document.getElementById("pmYear").value);
       var bioEl=document.getElementById("pmBio");
       var bioText=bioEl.textContent.trim();
@@ -1016,7 +1018,7 @@
         subId = subSel;
       }
       var fields = {
-        name:name, bio:bioText, bioHtml:bioHtml, catId:catId, subId:subId,
+        name:name, fullName: fullName||null, bio:bioText, bioHtml:bioHtml, catId:catId, subId:subId,
         sortYear:birth.y, birthMonth:birth.m, birthDay:birth.d,
         deathYear: death?death.y:null, deathMonth: death?death.m:null, deathDay: death?death.d:null
       };

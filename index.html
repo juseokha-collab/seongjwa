@@ -383,9 +383,15 @@
     <button type="button" class="panel-close" id="pmClose" aria-label="닫기">✕</button>
     <h2 id="pmTitle">새 인물 추가</h2>
     <form id="pmForm">
-      <div class="field">
-        <label for="pmName">이름</label>
-        <input type="text" id="pmName" required>
+      <div class="field-row">
+        <div class="field">
+          <label for="pmName">이름 (성좌에 표시)</label>
+          <input type="text" id="pmName" required>
+        </div>
+        <div class="field">
+          <label for="pmFullName">풀네임 (선택, 클릭 시 상세에 표시)</label>
+          <input type="text" id="pmFullName">
+        </div>
       </div>
       <div class="field-row">
         <div class="field">
@@ -446,7 +452,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1792042890"></script>
+<script src="app.js?v=1792043274"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

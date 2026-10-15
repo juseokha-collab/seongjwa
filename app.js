@@ -717,6 +717,16 @@
     html+='<div class="years">'+escapeHtml(panelYearsLabel(p))+(p.nationality?(' · '+escapeHtml(p.nationality)):'')+
       ((p.manualRow!=null||p.manualX!=null) ? ' <button type="button" class="mini-btn" id="resetRowBtn" title="자동 배치로 되돌리기">위치 초기화</button>' : '')+
       '</div>';
+    if(p.connections && p.connections.length){
+      var connHtml = p.connections.map(function(cn){
+        var yrs = cn.sortYear!=null ? (fmtYear(cn.sortYear)+(cn.deathYear!=null?("-"+fmtYear(cn.deathYear)):"")) : "";
+        var line = escapeHtml(cn.name);
+        if(yrs) line += " "+yrs;
+        if(cn.note) line += " · "+escapeHtml(cn.note);
+        return line;
+      }).join("<br>");
+      html+='<div class="years">인연 · '+connHtml+'</div>';
+    }
     var bioContent = p.bioHtml ? sanitizeRichHtml(p.bioHtml) : escapeHtml(p.bio||"").replace(/\n/g,"<br>");
     var ytUrls = extractYouTubeUrls(p.bio||"");
     html+='<p class="bio">'+linkifyHtml(bioContent, ytUrls)+'</p>';

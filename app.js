@@ -725,7 +725,7 @@
         if(cn.note) line += " · "+escapeHtml(cn.note);
         return line;
       }).join("<br>");
-      html+='<div class="years">인연 · '+connHtml+'</div>';
+      html+='<div class="years">'+connHtml+'</div>';
     }
     var bioContent = p.bioHtml ? sanitizeRichHtml(p.bioHtml) : escapeHtml(p.bio||"").replace(/\n/g,"<br>");
     var ytUrls = extractYouTubeUrls(p.bio||"");

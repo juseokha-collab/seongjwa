@@ -1052,7 +1052,40 @@
     editingId=null;
   }
 
+  // the title bar doubles as a drag handle — pressing it switches the card from
+  // flex-centered to a fixed position under the pointer, then follows it until release
+  function initModalDrag(){
+    var card = document.querySelector("#personModal .modal-card");
+    var handle = document.getElementById("pmTitle");
+    if(!card || !handle) return;
+    handle.addEventListener("pointerdown", function(e){
+      if(e.button!=null && e.button!==0) return;
+      var rect = card.getBoundingClientRect();
+      card.style.position = "fixed";
+      card.style.margin = "0";
+      card.style.left = rect.left+"px";
+      card.style.top = rect.top+"px";
+      var startX=e.clientX, startY=e.clientY, origLeft=rect.left, origTop=rect.top;
+      var moved=false;
+      function onMove(ev){
+        var dx=ev.clientX-startX, dy=ev.clientY-startY;
+        if(Math.abs(dx)>2 || Math.abs(dy)>2) moved=true;
+        if(!moved) return;
+        var nl = Math.max(-rect.width+120, Math.min(origLeft+dx, window.innerWidth-120));
+        var nt = Math.max(0, Math.min(origTop+dy, window.innerHeight-40));
+        card.style.left = nl+"px";
+        card.style.top = nt+"px";
+      }
+      function onUp(){
+        document.removeEventListener("pointermove", onMove);
+        document.removeEventListener("pointerup", onUp);
+      }
+      document.addEventListener("pointermove", onMove);
+      document.addEventListener("pointerup", onUp);
+    });
+  }
   function initModal(){
+    initModalDrag();
     // Pressing Enter to confirm a Korean IME syllable can also trigger the form's
     // native "Enter submits" behavior before that last character is committed to
     // the field's value, silently dropping it. Block only that composing case.

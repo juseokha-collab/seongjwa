@@ -322,7 +322,12 @@
   .field{display:flex; flex-direction:column; gap:6px; margin-bottom:14px;}
   .field label{font-size:.78rem; color:var(--text-muted);}
   .field-row{display:flex; gap:10px;}
-  .field-row .field{flex:1;}
+  .field-row .field{flex:1; flex-direction:row; align-items:center; gap:8px;}
+  .field-row .field label{flex:none; white-space:nowrap;}
+  .field-row .field input,
+  .field-row .field select,
+  .field-row .field .field-stack{flex:1; min-width:0;}
+  .field-stack{display:flex; flex-direction:column; gap:6px;}
   .modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:20px;}
 
   @media (max-width:760px){
@@ -385,34 +390,38 @@
     <form id="pmForm">
       <div class="field-row">
         <div class="field">
-          <label for="pmName">이름 (성좌에 표시)</label>
+          <label for="pmName" title="성좌 지도에 표시되는 이름">이름</label>
           <input type="text" id="pmName" required>
         </div>
         <div class="field">
-          <label for="pmFullName">풀네임 (선택, 클릭 시 상세에 표시)</label>
-          <input type="text" id="pmFullName">
+          <label for="pmFullName" title="선택 사항 — 클릭 시 상세 패널에 표시">풀네임</label>
+          <input type="text" id="pmFullName" placeholder="선택">
         </div>
       </div>
       <div class="field-row">
         <div class="field">
-          <label for="pmYear">출생년월일 (예: 1960.3.5, 연도만: 1960, 기원전: -470)</label>
+          <label for="pmYear" title="예: 1960.3.5, 연도만: 1960, 기원전: -470">출생</label>
           <input type="text" id="pmYear" placeholder="1960.3.5" required>
         </div>
         <div class="field">
-          <label for="pmDeathYear">사망년월일 (예: 2010.1.14, 생존 시 비워두세요)</label>
+          <label for="pmDeathYear" title="예: 2010.1.14, 생존 시 비워두세요">사망</label>
           <input type="text" id="pmDeathYear" placeholder="2010.1.14">
         </div>
       </div>
       <div class="field-row">
         <div class="field">
           <label for="pmCat">분야</label>
-          <select id="pmCat"></select>
-          <input type="text" id="pmNewCat" placeholder="새 분야 이름" style="display:none; margin-top:6px;">
+          <div class="field-stack">
+            <select id="pmCat"></select>
+            <input type="text" id="pmNewCat" placeholder="새 분야 이름" style="display:none;">
+          </div>
         </div>
         <div class="field">
-          <label for="pmSub">서브 카테고리 (선택)</label>
-          <select id="pmSub"></select>
-          <input type="text" id="pmNewSub" placeholder="새 서브 카테고리 이름" style="display:none; margin-top:6px;">
+          <label for="pmSub" title="선택 사항">서브</label>
+          <div class="field-stack">
+            <select id="pmSub"></select>
+            <input type="text" id="pmNewSub" placeholder="새 서브 카테고리 이름" style="display:none;">
+          </div>
         </div>
       </div>
       <div class="field">
@@ -452,7 +461,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1792043472"></script>
+<script src="app.js?v=1792043992"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

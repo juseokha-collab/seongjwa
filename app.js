@@ -280,6 +280,17 @@
     if(m!=null){ s += "."+m; if(d!=null) s += "."+d; }
     return s;
   }
+  // "1800-1850" / "-470-1850" / "1800" (death omitted) -> {birth, death}; a leading "-" on
+  // the whole string marks a BC birth year and is not treated as the birth/death separator.
+  function parseYearRange(str){
+    str = (str||"").trim();
+    if(!str) return {birth:null, death:null};
+    var idx = -1;
+    for(var i=1;i<str.length;i++){ if(str[i]==="-"){ idx=i; break; } }
+    var birthStr = idx===-1 ? str : str.slice(0,idx);
+    var deathStr = idx===-1 ? "" : str.slice(idx+1);
+    return {birth: parseDateInput(birthStr), death: deathStr ? parseDateInput(deathStr) : null};
+  }
 
   // ---------------- hover tooltip ----------------
   function showTooltip(p, evt){
@@ -590,11 +601,11 @@
         var label=el("text",{class:"conn-label", x:cx, y:cy-12});
         label.textContent = conn.name;
         ng.appendChild(label);
-        if(conn.note){
-          var titleEl=el("title",{});
-          titleEl.textContent = conn.note;
-          ng.appendChild(titleEl);
-        }
+        var rangeLabel = fmtYear(conn.sortYear)+(conn.deathYear!=null?("-"+fmtYear(conn.deathYear)):"");
+        var titleText = conn.note ? (rangeLabel+" · "+conn.note) : rangeLabel;
+        var titleEl=el("title",{});
+        titleEl.textContent = titleText;
+        ng.appendChild(titleEl);
         g.appendChild(ng);
       });
       connLayer.appendChild(g);
@@ -997,11 +1008,17 @@
     row.className="conn-row";
     row.innerHTML =
       '<input type="text" class="conn-name" placeholder="인연">'+
-      '<input type="text" class="conn-year" placeholder="출생 (예: 1800)">'+
+      '<input type="text" class="conn-year" placeholder="출생-사망 (예: 1800-1850)">'+
       '<input type="text" class="conn-note" placeholder="비고">'+
       '<button type="button" class="conn-remove" aria-label="인연 삭제">✕</button>';
     row.querySelector(".conn-name").value = conn ? (conn.name||"") : "";
-    row.querySelector(".conn-year").value = conn ? formatDateInput(conn.sortYear, conn.birthMonth, conn.birthDay) : "";
+    var yearVal = "";
+    if(conn){
+      var birthStr = formatDateInput(conn.sortYear, conn.birthMonth, conn.birthDay);
+      var deathStr = formatDateInput(conn.deathYear, conn.deathMonth, conn.deathDay);
+      yearVal = deathStr ? (birthStr+"-"+deathStr) : birthStr;
+    }
+    row.querySelector(".conn-year").value = yearVal;
     row.querySelector(".conn-note").value = conn ? (conn.note||"") : "";
     row.querySelector(".conn-remove").addEventListener("click", function(){ row.remove(); });
     wrap.appendChild(row);
@@ -1087,8 +1104,13 @@
         if(!cname) return;
         var cnote = row.querySelector(".conn-note").value.trim();
         var cyearRaw = row.querySelector(".conn-year").value.trim();
-        var cy = cyearRaw ? parseDateInput(cyearRaw) : null;
-        connections.push({id:uid("conn"), name:cname, sortYear: cy?cy.y:null, birthMonth: cy?cy.m:null, birthDay: cy?cy.d:null, note: cnote||null});
+        var range = parseYearRange(cyearRaw);
+        connections.push({
+          id:uid("conn"), name:cname,
+          sortYear: range.birth?range.birth.y:null, birthMonth: range.birth?range.birth.m:null, birthDay: range.birth?range.birth.d:null,
+          deathYear: range.death?range.death.y:null, deathMonth: range.death?range.death.m:null, deathDay: range.death?range.death.d:null,
+          note: cnote||null
+        });
       });
       var fields = {
         name:name, fullName: fullName||null, nationality: nationality||null, connections:connections, bio:bioText, bioHtml:bioHtml, catId:catId, subId:subId,

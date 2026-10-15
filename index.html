@@ -176,7 +176,11 @@
   .conn-edge{fill:none; stroke:#e8495a; stroke-width:1.6; stroke-dasharray:3 4; opacity:.9;}
   .conn-node{pointer-events:auto;}
   .conn-node circle.conn-core{fill:#e8495a; filter:url(#starglow);}
-  .conn-node text.conn-label{font-family:Consolas,"JetBrains Mono",monospace; font-size:11px; fill:#f1a3ab; text-anchor:middle; pointer-events:none;}
+  .conn-node text.conn-label{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:#f1a3ab; text-anchor:middle; pointer-events:none;}
+  .conn-node text.conn-years{font-family:Consolas,"JetBrains Mono",monospace; font-size:9px; fill:#c98087; text-anchor:middle; pointer-events:none;}
+
+  .life-band{display:none; fill:var(--gold); opacity:.1; pointer-events:none;}
+  .life-band.life-band-visible{display:block;}
 
   .grid-line{stroke:var(--line-faint); stroke-dasharray:2 5;}
   .lane-divider{stroke:var(--line-faint); opacity:.7;}
@@ -482,7 +486,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1792048128"></script>
+<script src="app.js?v=1792048617"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

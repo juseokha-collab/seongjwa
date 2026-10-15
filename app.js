@@ -328,7 +328,7 @@
   }
 
   var stage, laneCol, emptyHint;
-  var nodeEls={}, edgeEls=[], connGroups={};
+  var nodeEls={}, edgeEls=[], connGroups={}, lifeBands={};
   var dragState=null, justDraggedId=null, cloudSyncing=false;
   function svgPoint(e){
     var pt = stage.createSVGPoint();
@@ -482,6 +482,22 @@
     });
     stage.appendChild(laneDiv);
 
+    // lifespan band — hidden until a person is selected (see highlightSelection), then
+    // spans their birth-death years across the full height so contemporaries stand out
+    var lifeBandLayer=el("g",{"aria-hidden":"true"});
+    lifeBands={};
+    STATE.people.forEach(function(p){
+      var pos = layout.pos[p.id];
+      if(!pos) return;
+      var x1 = layout.yearToX(p.sortYear);
+      var x2 = p.deathYear!=null ? layout.yearToX(p.deathYear) : (layout.width-MARGIN_R);
+      if(x2<x1){ var tmp=x1; x1=x2; x2=tmp; }
+      var band=el("rect",{class:"life-band", x:x1, y:0, width:Math.max(1,x2-x1), height:layout.height});
+      lifeBandLayer.appendChild(band);
+      lifeBands[p.id]=band;
+    });
+    stage.appendChild(lifeBandLayer);
+
     var defs=el("defs",{});
     var glow=el("filter",{id:"starglow",x:"-60%",y:"-60%",width:"220%",height:"220%"});
     glow.innerHTML='<feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>';
@@ -598,9 +614,12 @@
         g.appendChild(el("path",{class:"conn-edge", d:"M"+pos.x+","+pos.y+" L"+endX+","+endY, "stroke-linecap":"round"}));
         var ng=el("g",{class:"conn-node"});
         ng.appendChild(el("circle",{class:"conn-core", cx:cx, cy:cy, r:4.5}));
-        var label=el("text",{class:"conn-label", x:cx, y:cy-12});
+        var label=el("text",{class:"conn-label", x:cx, y:cy-24});
         label.textContent = conn.name;
         ng.appendChild(label);
+        var yrsLine=el("text",{class:"conn-years", x:cx, y:cy-12});
+        yrsLine.textContent = yearsLabel(conn);
+        ng.appendChild(yrsLine);
         var rangeLabel = fmtYear(conn.sortYear)+(conn.deathYear!=null?("-"+fmtYear(conn.deathYear)):"");
         var titleText = conn.note ? (rangeLabel+" · "+conn.note) : rangeLabel;
         var titleEl=el("title",{});
@@ -633,6 +652,9 @@
     Object.keys(connGroups).forEach(function(pid){
       connGroups[pid].classList.toggle("conn-visible", pid===id);
     });
+    Object.keys(lifeBands).forEach(function(pid){
+      lifeBands[pid].classList.toggle("life-band-visible", pid===id);
+    });
   }
 
   function clearSelection(){
@@ -642,6 +664,7 @@
     Object.keys(nodeEls).forEach(function(nid){ nodeEls[nid].classList.remove("active-node"); });
     edgeEls.forEach(function(l){ l.classList.remove("active-edge"); });
     Object.keys(connGroups).forEach(function(pid){ connGroups[pid].classList.remove("conn-visible"); });
+    Object.keys(lifeBands).forEach(function(pid){ lifeBands[pid].classList.remove("life-band-visible"); });
     var panel=document.getElementById("panel");
     panel.classList.remove("open"); panel.setAttribute("aria-hidden","true");
   }

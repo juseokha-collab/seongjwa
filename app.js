@@ -765,7 +765,7 @@
     }
     var bioContent = p.bioHtml ? sanitizeRichHtml(p.bioHtml) : escapeHtml(p.bio||"").replace(/\n/g,"<br>");
     var ytUrls = extractYouTubeUrls(p.bio||"");
-    html+='<p class="bio">'+linkifyHtml(bioContent, ytUrls)+'</p>';
+    html+='<div class="bio">'+linkifyHtml(bioContent, ytUrls)+'</div>';
     if(ytUrls.length) html+='<div class="yt-cards" id="ytCards"></div>';
 
     html+='<h3>관계 · '+relLines.length+'</h3>';

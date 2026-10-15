@@ -646,8 +646,21 @@
       l.classList.toggle("active-edge", match);
       if(match){ relatedIds[l.dataset.a]=true; relatedIds[l.dataset.b]=true; }
     });
+    var selP = personOf(id);
+    var selStart = selP ? selP.sortYear : null;
+    var selEnd = selP ? (selP.deathYear!=null ? selP.deathYear : Infinity) : null;
     Object.keys(nodeEls).forEach(function(nid){
-      nodeEls[nid].classList.toggle("active-node", !!relatedIds[nid]);
+      var isActive = !!relatedIds[nid];
+      nodeEls[nid].classList.toggle("active-node", isActive);
+      var contemporary = false;
+      if(!isActive && selStart!=null){
+        var np = personOf(nid);
+        if(np){
+          var npEnd = np.deathYear!=null ? np.deathYear : Infinity;
+          contemporary = np.sortYear<=selEnd && npEnd>=selStart;
+        }
+      }
+      nodeEls[nid].classList.toggle("contemporary-node", contemporary);
     });
     Object.keys(connGroups).forEach(function(pid){
       connGroups[pid].classList.toggle("conn-visible", pid===id);
@@ -661,7 +674,7 @@
     currentId=null;
     editingNoteId=null;
     stage.classList.remove("selected-fade");
-    Object.keys(nodeEls).forEach(function(nid){ nodeEls[nid].classList.remove("active-node"); });
+    Object.keys(nodeEls).forEach(function(nid){ nodeEls[nid].classList.remove("active-node"); nodeEls[nid].classList.remove("contemporary-node"); });
     edgeEls.forEach(function(l){ l.classList.remove("active-edge"); });
     Object.keys(connGroups).forEach(function(pid){ connGroups[pid].classList.remove("conn-visible"); });
     Object.keys(lifeBands).forEach(function(pid){ lifeBands[pid].classList.remove("life-band-visible"); });

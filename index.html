@@ -166,6 +166,9 @@
   .selected-fade .node:not(.active-node) circle.core,
   .selected-fade .node:not(.active-node) .label-bg,
   .selected-fade .node:not(.active-node) text{opacity:.18;}
+  .selected-fade .node.contemporary-node:not(.active-node) circle.core,
+  .selected-fade .node.contemporary-node:not(.active-node) .label-bg,
+  .selected-fade .node.contemporary-node:not(.active-node) text{opacity:.62;}
   .selected-fade .edge:not(.active-edge){opacity:.05;}
 
   .edge{fill:none; stroke:var(--edge-ink); stroke-width:1.6; transition:opacity .2s ease, stroke .2s ease, stroke-width .2s ease;}
@@ -486,7 +489,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1792048617"></script>
+<script src="app.js?v=1792048917"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

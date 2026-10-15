@@ -46,6 +46,7 @@
   var STATE = normalizeState(loadLocal() || defaultState());
   var activeCatIds = null; // null = all on
   var currentId = null;
+  var editingNoteId = null;
 
   function loadLocal(){
     try{
@@ -589,6 +590,7 @@
 
   function clearSelection(){
     currentId=null;
+    editingNoteId=null;
     stage.classList.remove("selected-fade");
     Object.keys(nodeEls).forEach(function(nid){ nodeEls[nid].classList.remove("active-node"); });
     edgeEls.forEach(function(l){ l.classList.remove("active-edge"); });
@@ -598,6 +600,7 @@
 
   function selectNode(id){
     hideTooltip();
+    if(currentId!==id) editingNoteId=null;
     currentId=id;
     highlightSelection(id);
     renderPanel(id);
@@ -697,7 +700,21 @@
     html+='<h3>나의 노트</h3>';
     html+='<div class="notes">';
     (p.notes||[]).slice().reverse().forEach(function(n){
-      html+='<div class="note-card"><div class="note-date">'+escapeHtml(n.date)+'<button class="note-del" data-nid="'+n.id+'" aria-label="노트 삭제">✕</button></div><div class="note-text">'+escapeHtml(n.text)+'</div></div>';
+      if(editingNoteId===n.id){
+        html+='<div class="note-card">'+
+          '<textarea class="note-edit-input" id="noteEdit_'+n.id+'" rows="3">'+escapeHtml(n.text)+'</textarea>'+
+          '<div class="note-edit-actions">'+
+            '<button type="button" class="mini-btn" data-cancel-note="'+n.id+'">취소</button>'+
+            '<button type="button" class="mini-btn primary" data-save-note="'+n.id+'">저장</button>'+
+          '</div>'+
+        '</div>';
+      } else {
+        html+='<div class="note-card"><div class="note-date">'+escapeHtml(n.date)+
+          '<span class="note-actions">'+
+            '<button class="note-edit" data-nid="'+n.id+'" aria-label="노트 수정">✎</button>'+
+            '<button class="note-del" data-nid="'+n.id+'" aria-label="노트 삭제">✕</button>'+
+          '</span></div><div class="note-text">'+escapeHtml(n.text)+'</div></div>';
+      }
     });
     html+='</div>';
     if(!(p.notes&&p.notes.length)) html+='<div class="note-empty">아직 기록한 노트가 없습니다.</div>';
@@ -750,6 +767,33 @@
         e.stopPropagation();
         var nid=btn.getAttribute("data-nid");
         p.notes = (p.notes||[]).filter(function(n){ return n.id!==nid; });
+        commit();
+      });
+    });
+    body.querySelectorAll(".note-edit").forEach(function(btn){
+      btn.addEventListener("click",function(e){
+        e.stopPropagation();
+        editingNoteId = btn.getAttribute("data-nid");
+        renderPanel(id);
+      });
+    });
+    body.querySelectorAll("[data-cancel-note]").forEach(function(btn){
+      btn.addEventListener("click",function(e){
+        e.stopPropagation();
+        editingNoteId = null;
+        renderPanel(id);
+      });
+    });
+    body.querySelectorAll("[data-save-note]").forEach(function(btn){
+      btn.addEventListener("click",function(e){
+        e.stopPropagation();
+        var nid = btn.getAttribute("data-save-note");
+        var ta = document.getElementById("noteEdit_"+nid);
+        var txt = ta.value.trim();
+        if(!txt) return;
+        var note = (p.notes||[]).filter(function(x){ return x.id===nid; })[0];
+        if(note) note.text = txt;
+        editingNoteId = null;
         commit();
       });
     });

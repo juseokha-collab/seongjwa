@@ -282,7 +282,12 @@
   .notes{display:flex; flex-direction:column; gap:10px; margin-bottom:6px;}
   .note-card{background:var(--bg-elevated); border-left:2px solid var(--gold); border-radius:6px; padding:10px 12px;}
   .note-date{display:flex; align-items:center; justify-content:space-between; font-family:"JetBrains Mono",monospace; font-size:10px; color:var(--text-muted); margin-bottom:4px;}
-  .note-del{background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:11px;}
+  .note-actions{display:flex; gap:8px;}
+  .note-edit, .note-del{background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:11px;}
+  .note-edit:hover{color:var(--gold);}
+  .note-del:hover{color:var(--rose);}
+  .note-edit-input{width:100%; margin-bottom:8px;}
+  .note-edit-actions{display:flex; justify-content:flex-end; gap:8px;}
   .note-del:hover{color:var(--rose);}
   .note-text{font-size:.87rem; color:var(--text-secondary); line-height:1.6; white-space:pre-wrap;}
   .note-empty{font-size:.84rem; color:var(--text-muted); padding:8px 0;}
@@ -441,7 +446,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1792030673"></script>
+<script src="app.js?v=1792042890"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

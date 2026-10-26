@@ -103,6 +103,71 @@
     return (sub && sub.color) ? sub.color : (c ? c.color : "#9ba1c4");
   }
 
+  // 국적 → 국기 이모지. 매칭되지 않으면 기존 색 점으로 대체 표시된다.
+  var FLAG_MAP = {
+    "한국":"🇰🇷","대한민국":"🇰🇷","남한":"🇰🇷",
+    "북한":"🇰🇵","조선":"🇰🇵",
+    "미국":"🇺🇸",
+    "영국":"🇬🇧","잉글랜드":"🏴","스코틀랜드":"🏴",
+    "독일":"🇩🇪","프로이센":"🇩🇪","독일제국":"🇩🇪","서독":"🇩🇪","동독":"🇩🇪",
+    "프랑스":"🇫🇷",
+    "이탈리아":"🇮🇹",
+    "오스트리아":"🇦🇹","오스트리아헝가리":"🇦🇹",
+    "폴란드":"🇵🇱",
+    "러시아":"🇷🇺","소련":"🇷🇺","소비에트":"🇷🇺",
+    "스위스":"🇨🇭",
+    "네덜란드":"🇳🇱",
+    "스페인":"🇪🇸",
+    "포르투갈":"🇵🇹",
+    "체코":"🇨🇿","체코슬로바키아":"🇨🇿",
+    "헝가리":"🇭🇺",
+    "벨기에":"🇧🇪",
+    "그리스":"🇬🇷","고대그리스":"🇬🇷",
+    "중국":"🇨🇳",
+    "일본":"🇯🇵",
+    "인도":"🇮🇳",
+    "캐나다":"🇨🇦",
+    "호주":"🇦🇺","오스트레일리아":"🇦🇺",
+    "뉴질랜드":"🇳🇿",
+    "브라질":"🇧🇷",
+    "아르헨티나":"🇦🇷",
+    "멕시코":"🇲🇽",
+    "쿠바":"🇨🇺",
+    "칠레":"🇨🇱",
+    "페루":"🇵🇪",
+    "콜롬비아":"🇨🇴",
+    "덴마크":"🇩🇰",
+    "노르웨이":"🇳🇴",
+    "스웨덴":"🇸🇪",
+    "핀란드":"🇫🇮",
+    "아이슬란드":"🇮🇸",
+    "아일랜드":"🇮🇪",
+    "이스라엘":"🇮🇱",
+    "터키":"🇹🇷","튀르키예":"🇹🇷","오스만제국":"🇹🇷","오스만":"🇹🇷",
+    "우크라이나":"🇺🇦",
+    "루마니아":"🇷🇴",
+    "불가리아":"🇧🇬",
+    "크로아티아":"🇭🇷",
+    "세르비아":"🇷🇸",
+    "슬로바키아":"🇸🇰",
+    "슬로베니아":"🇸🇮",
+    "리투아니아":"🇱🇹",
+    "라트비아":"🇱🇻",
+    "에스토니아":"🇪🇪",
+    "남아프리카공화국":"🇿🇦","남아공":"🇿🇦",
+    "이집트":"🇪🇬",
+    "인도네시아":"🇮🇩",
+    "베트남":"🇻🇳",
+    "태국":"🇹🇭",
+    "필리핀":"🇵🇭",
+    "로마":"🇮🇹","고대로마":"🇮🇹","로마제국":"🇮🇹"
+  };
+  function flagEmoji(nat){
+    if(!nat) return null;
+    var key = nat.trim().replace(/\s+/g,"");
+    return FLAG_MAP[key] || null;
+  }
+
   // ---------------- layout ----------------
   var MIN_ANCHOR_GAP = 60;      // minimum spacing enforced only around manually-dragged ticks
   var POP_CENTURY_BASE_GAP = 240; // default width for a century with at least one person
@@ -534,7 +599,14 @@
       g.appendChild(el("circle",{class:"ring", cx:pos.x, cy:pos.y, r:11, fill:"none", stroke:"transparent"}));
       var labelW = labelHalfWidth(p)*2+10;
       g.appendChild(el("rect",{class:"label-bg", x:pos.x-labelW/2, y:pos.y-37, width:labelW, height:29, rx:5}));
-      g.appendChild(el("circle",{class:"core", cx:pos.x, cy:pos.y, r:5.5, fill:color, filter:"url(#starglow)"}));
+      var flag = flagEmoji(p.nationality);
+      if(flag){
+        var flagEl=el("text",{class:"flag", x:pos.x, y:pos.y, "text-anchor":"middle", "dominant-baseline":"central", filter:"url(#starglow)"});
+        flagEl.textContent = flag;
+        g.appendChild(flagEl);
+      } else {
+        g.appendChild(el("circle",{class:"core", cx:pos.x, cy:pos.y, r:5.5, fill:color, filter:"url(#starglow)"}));
+      }
       var name=el("text",{x:pos.x, y:pos.y-24, "text-anchor":"middle"});
       name.textContent = p.name;
       g.appendChild(name);

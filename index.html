@@ -156,6 +156,7 @@
   .node{cursor:grab; outline:none; touch-action:none;}
   .node:active{cursor:grabbing;}
   .node circle.core{transition:r .15s ease, opacity .2s ease;}
+  .node text.flag{font-size:18px; pointer-events:none; transition:opacity .2s ease;}
   .node .label-bg{fill:var(--bg-deep); opacity:.74; pointer-events:none; transition:opacity .2s ease;}
   .node text{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:var(--text-primary); pointer-events:none; transition:opacity .2s ease, font-weight .15s ease;}
   .node text.years{font-family:Consolas,"JetBrains Mono",monospace; font-size:9px; fill:var(--text-muted);}
@@ -489,7 +490,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1792050210"></script>
+<script src="app.js?v=1792988204"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

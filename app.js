@@ -164,8 +164,12 @@
   };
   function flagEmoji(nat){
     if(!nat) return null;
-    var key = nat.trim().replace(/\s+/g,"");
-    return FLAG_MAP[key] || null;
+    var first = nat.split(",")[0].trim();
+    if(!first) return null;
+    var key = first.replace(/\s+/g,"");
+    if(FLAG_MAP[key]) return FLAG_MAP[key];
+    var firstWord = first.split(/\s+/)[0]; // "독일 라이프치히" -> try "독일" alone too
+    return FLAG_MAP[firstWord] || null;
   }
 
   // ---------------- layout ----------------

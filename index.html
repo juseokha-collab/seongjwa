@@ -157,9 +157,10 @@
   .node:active{cursor:grabbing;}
   .node circle.core{transition:r .15s ease, opacity .2s ease;}
   .node text.flag{font-size:18px; pointer-events:none; transition:opacity .2s ease;}
-  .node .label-bg{fill:var(--bg-deep); opacity:.74; pointer-events:none; transition:opacity .2s ease;}
+  .node .label-bg{fill:var(--bg-deep); opacity:.74; transition:opacity .2s ease;}
   .node text{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:var(--text-primary); pointer-events:none; transition:opacity .2s ease, font-weight .15s ease;}
   .node text.years{font-family:Consolas,"JetBrains Mono",monospace; font-size:9px; fill:var(--text-muted);}
+  .node circle.ring{pointer-events:all;}
   .node:focus-visible circle.ring{stroke:var(--focus-ring); stroke-width:2;}
   .node.active-node text{font-weight:700;}
   .node.active-node text.years{fill:var(--text-primary);}
@@ -490,7 +491,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1792988577"></script>
+<script src="app.js?v=1792989071"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

@@ -1,0 +1,36 @@
+{
+  "updated": "2026-10-29",
+  "days": [
+    {
+      "date": "2026-10-29",
+      "items": [
+        {
+          "born": 1819,
+          "composer": "클라라 슈만",
+          "composerYears": "1819–1896",
+          "desc": "1853년 작. 바이올리니스트 요아힘에게 헌정했고, 브람스를 처음 만난 해의 곡. 짧고 서정적인 세 곡.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=G2yVMWbslCM",
+          "note": "",
+          "performer": "자닌 얀센 · 데니스 코주힌",
+          "slot": "이어 듣기",
+          "work": "바이올린과 피아노를 위한 3개의 로망스 Op.22"
+        },
+        {
+          "born": 1644,
+          "composer": "비버",
+          "composerYears": "1644–1704",
+          "desc": "1676년경, 로사리오 소나타의 마지막 곡. 네 음 하강 베이스가 65번 반복되며 변주가 쌓인다. 바흐 샤콘느의 선배.",
+          "era": "바로크",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=C1wlK2F6AOo",
+          "note": "",
+          "performer": "앤드루 맨즈",
+          "slot": "새 별",
+          "work": "무반주 바이올린 파사칼리아 g단조"
+        }
+      ]
+    }
+  ]
+}

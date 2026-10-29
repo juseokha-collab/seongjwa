@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<script>(function(){try{if(localStorage.getItem("seongjwa.theme")==="light") document.documentElement.setAttribute("data-theme","light");}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0d1b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="음악성좌">
+<title>음악성좌</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎼</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  /* 인물사전과 같은 밤하늘 톤. 위: 시대 띠 위 작곡가 별 지도 / 아래: 날짜별 추천 기록장 */
+  :root{
+    --bg-deep:#0a0d1b; --bg-panel:#12162c; --bg-elevated:#1a1f3d;
+    --line-faint:#262c4d; --line-mid:#3a4070;
+    --text-primary:#eceef6; --text-secondary:#9ba1c4; --text-muted:#666c92;
+    --gold:#e8b84b; --gold-soft:rgba(232,184,75,.14); --on-gold:#1a1206;
+    --star-dim:#5b6190; --star-dust:#3d4370; --thread:#2b3258;
+    --baroque:#c99a5b; --classic:#7fb6d9; --romantic:#d98ba3; --modern:#8fd1b3;
+    --focus-ring:#f2d98a;
+  }
+  :root[data-theme="light"]{
+    --bg-deep:#eef1fa; --bg-panel:#ffffff; --bg-elevated:#f4f6fc;
+    --line-faint:#e1e5f3; --line-mid:#c7cce4;
+    --text-primary:#1b1f36; --text-secondary:#4d5372; --text-muted:#767ca0;
+    --gold:#b9822a; --gold-soft:rgba(185,130,42,.12); --on-gold:#ffffff;
+    --star-dim:#9aa0c8; --star-dust:#d3d8ec; --thread:#d3d8ec;
+    --baroque:#9a6a2c; --classic:#3f7fa8; --romantic:#b44a6b; --modern:#3f8f6c;
+    --focus-ring:#b9822a;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg-deep);color:var(--text-primary);font-family:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.6;min-height:100vh}
+  a{color:inherit}
+  button,textarea{font-family:inherit}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:12px max(18px,env(safe-area-inset-right,0px)) 12px max(18px,env(safe-area-inset-left,0px));
+    padding-top:calc(12px + env(safe-area-inset-top,0px));
+    background:rgba(18,22,44,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line-faint);color:#eceef6}
+  .brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .brand h1{font-family:"Song Myung",serif;font-size:1.4rem;font-weight:400;margin:0;letter-spacing:.02em}
+  .brand span{font-size:.72rem;color:#8d93b8;font-family:"JetBrains Mono",monospace;letter-spacing:.03em}
+  .top-actions{display:flex;gap:8px;align-items:center}
+  .tbtn{font-size:.83rem;border:1px solid #3a4070;background:transparent;color:#eceef6;padding:7px 13px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .tbtn:hover{border-color:#e8b84b;color:#f2d98a}
+  .tbtn:focus-visible{outline:2px solid #f2d98a;outline-offset:2px}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:24px max(16px,env(safe-area-inset-right,0px)) calc(64px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:24px}
+  .intro{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+  .intro p{margin:0;color:var(--text-secondary);font-size:.92rem;max-width:60ch}
+  .stats{display:flex;gap:20px;font-family:"JetBrains Mono",monospace;font-size:.74rem;color:var(--text-muted)}
+  .stats b{display:block;font-family:"Gowun Batang",serif;font-size:1.5rem;color:var(--text-primary);font-weight:700;font-variant-numeric:tabular-nums}
+  .stats .g b{color:var(--gold)}
+
+  .map{background:var(--bg-panel);border:1px solid var(--line-faint);border-radius:14px;overflow:hidden}
+  .map-scroll{overflow-x:auto}
+  svg.sky{display:block;width:100%;min-width:760px;height:auto}
+  .era-t{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em}
+  .yr{font-family:"JetBrains Mono",monospace;font-size:10px;fill:var(--text-muted)}
+  .star{cursor:pointer}
+  .star text{font-family:"Gowun Batang",serif;font-size:13px;fill:var(--text-primary);pointer-events:none}
+  .star.faint text{fill:var(--text-secondary)}
+  .star:focus{outline:none}
+  .star:focus-visible .ring,.star.sel .ring{stroke:var(--gold);stroke-width:1.5}
+  .map-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:12px 18px;border-top:1px solid var(--line-faint);font-size:.8rem;color:var(--text-muted)}
+  .key{display:flex;gap:16px;flex-wrap:wrap}
+  .key span{display:inline-flex;align-items:center;gap:6px}
+  .key i{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+  .detail{background:var(--bg-elevated);border:1px solid var(--line-faint);border-radius:12px;padding:16px 20px}
+  .detail h2{font-family:"Gowun Batang",serif;font-size:1.25rem;margin:0}
+  .detail .meta{font-family:"JetBrains Mono",monospace;font-size:.76rem;color:var(--text-muted);margin:2px 0 10px}
+  .detail ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+  .detail li{font-size:.9rem;color:var(--text-secondary)}
+  .detail li.liked{color:var(--text-primary)}
+  .detail li.liked::before{content:"★ ";color:var(--gold)}
+  .detail li:not(.liked)::before{content:"· ";color:var(--text-muted)}
+
+  .pending{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-radius:12px;border:1px solid var(--gold);background:var(--gold-soft)}
+  .pending p{margin:0;font-size:.88rem;color:var(--text-primary)}
+  .pending small{display:block;color:var(--text-secondary);font-size:.78rem}
+  .gbtn{font-size:.84rem;padding:8px 14px;border-radius:10px;border:1px solid var(--gold);background:var(--gold);color:var(--on-gold);font-weight:700;cursor:pointer}
+  .gbtn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+  .copybox{width:100%;margin-top:6px}
+
+  .log-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px}
+  .log-head h2{font-family:"Gowun Batang",serif;font-size:1.35rem;margin:0}
+  .tabs{display:flex;gap:6px}
+  .tabs button{font-size:.82rem;padding:6px 14px;border-radius:999px;border:1px solid var(--line-mid);background:transparent;color:var(--text-secondary);cursor:pointer}
+  .tabs button[aria-pressed="true"]{background:var(--text-primary);color:var(--bg-deep);border-color:var(--text-primary)}
+  .tabs button:focus-visible,.like:focus-visible,.save:focus-visible,a:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+
+  #log{display:flex;flex-direction:column;gap:22px}
+  .day{display:flex;flex-direction:column;gap:10px}
+  .day-date{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--text-muted);letter-spacing:.04em}
+  .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:12px}
+  .card{background:var(--bg-panel);border:1px solid var(--line-faint);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+  .card.is-liked{border-color:var(--gold);background:linear-gradient(var(--gold-soft),var(--gold-soft)),var(--bg-panel)}
+  .slot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.74rem;color:var(--text-muted)}
+  .slot .pill{padding:2px 9px;border-radius:999px;border:1px solid var(--line-mid);font-family:"JetBrains Mono",monospace}
+  .era-pill{font-family:"JetBrains Mono",monospace}
+  .card h3{font-family:"Gowun Batang",serif;font-size:1.06rem;margin:0;line-height:1.45;text-wrap:balance}
+  .card .who{font-size:.85rem;color:var(--text-secondary)}
+  .card p{margin:0;font-size:.9rem;color:var(--text-secondary)}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .yt{font-size:.85rem;text-decoration:none;border-bottom:1px solid var(--text-muted)}
+  .yt:hover{border-color:var(--gold)}
+  .like{margin-left:auto;font-size:.82rem;padding:6px 12px;border-radius:999px;border:1px solid var(--line-mid);background:transparent;color:var(--text-secondary);cursor:pointer}
+  .like[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--on-gold);font-weight:700}
+  textarea{width:100%;min-height:54px;resize:vertical;font-size:.86rem;color:var(--text-primary);background:var(--bg-deep);border:1px solid var(--line-mid);border-radius:8px;padding:8px 10px}
+  textarea:focus{outline:none;border-color:var(--gold)}
+  .note-row{display:flex;gap:8px;align-items:flex-end}
+  .save{font-size:.8rem;padding:6px 12px;border-radius:8px;border:1px solid var(--line-mid);background:var(--bg-elevated);color:var(--text-primary);cursor:pointer;white-space:nowrap}
+  .status{font-size:.76rem;color:var(--text-muted);min-height:1em}
+  .local-tag{font-size:.72rem;color:var(--gold)}
+  .empty{background:var(--bg-panel);border:1px dashed var(--line-mid);border-radius:12px;padding:26px 22px;color:var(--text-secondary);font-size:.92rem}
+  .empty strong{font-family:"Gowun Batang",serif;color:var(--text-primary);font-size:1.05rem;display:block;margin-bottom:6px}
+  @media (max-width:520px){.note-row{flex-direction:column;align-items:stretch}.stats{gap:14px}}
+  @media (prefers-reduced-motion:no-preference){.star circle.core{transition:r .15s ease}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <h1>음악성좌</h1>
+    <span>MUSIC CONSTELLATION</span>
+  </div>
+  <div class="top-actions">
+    <a class="tbtn" href="./">← 인물사전</a>
+    <button class="tbtn" id="themeToggle" aria-label="화면 모드 전환">🌙</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="intro">
+    <p>평일 저녁 6시, 카카오톡으로 받은 클래식 두 곡이 날짜별로 쌓이고, 마음에 든 곡의 작곡가는 금빛 별이 됩니다.</p>
+    <div class="stats" aria-live="polite">
+      <div><b id="nDays">0</b>받은 날</div>
+      <div><b id="nPieces">0</b>추천곡</div>
+      <div class="g"><b id="nLiked">0</b>마음에 든 곡</div>
+      <div><b id="nComposers">0</b>작곡가</div>
+    </div>
+  </div>
+
+  <section class="map" aria-label="작곡가 성좌 지도">
+    <div class="map-scroll"><svg class="sky" id="sky" viewBox="0 0 1080 360" role="img" aria-label="출생 연도 순으로 배치한 작곡가 별 지도"></svg></div>
+    <div class="map-foot">
+      <div class="key">
+        <span><i style="background:var(--gold)"></i>마음에 든 곡이 있는 작곡가</span>
+        <span><i style="background:var(--star-dim)"></i>추천만 받은 작곡가</span>
+        <span>별 크기 = 좋아요한 곡 수</span>
+      </div>
+      <span>별을 누르면 작품 목록이 열려요</span>
+    </div>
+  </section>
+
+  <section class="detail" id="detail" hidden aria-live="polite"></section>
+
+  <section class="pending" id="pending" hidden>
+    <div>
+      <p id="pendingText"></p>
+      <small>지금은 이 기기에만 저장돼 있어요. 문구를 복사해 Claude에게 보내면 모든 기기와 다음 추천에 반영됩니다.</small>
+      <textarea class="copybox" id="copyBox" readonly hidden aria-label="Claude에게 보낼 문구"></textarea>
+    </div>
+    <button class="gbtn" id="copyBtn">Claude에게 보낼 문구 복사</button>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:16px">
+    <div class="log-head">
+      <h2>추천 기록</h2>
+      <div class="tabs" role="group" aria-label="보기">
+        <button id="tabAll" aria-pressed="true">전체</button>
+        <button id="tabLiked" aria-pressed="false">마음에 든 곡</button>
+      </div>
+    </div>
+    <div id="log"><div class="empty"><strong>기록을 불러오는 중이에요</strong>잠시만 기다려 주세요.</div></div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var ERAS=[
+    {key:"바로크",from:1640,to:1700,color:"var(--baroque)"},
+    {key:"고전",from:1700,to:1770,color:"var(--classic)"},
+    {key:"낭만",from:1770,to:1860,color:"var(--romantic)"},
+    {key:"근현대",from:1860,to:1960,color:"var(--modern)"}
+  ];
+  var X0=40,X1=1040,Y0=70,Y1=320,MINY=1640,MAXY=1960;
+  var LS="seongjwa.music.local";
+  var state={days:[],filter:"all",selected:null,local:loadLocal()};
+  var svgNS="http://www.w3.org/2000/svg";
+  var $=function(id){return document.getElementById(id)};
+
+  function loadLocal(){try{return JSON.parse(localStorage.getItem(LS)||"{}")||{}}catch(e){return {}}}
+  function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(state.local))}catch(e){}}
+  function key(date,i){return date+"#"+i}
+  function el(tag,attrs,text){var e=document.createElementNS(svgNS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;return e}
+  function h(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+  function xOf(y){return X0+(Math.min(Math.max(y,MINY),MAXY)-MINY)/(MAXY-MINY)*(X1-X0)}
+  function hash(s){var n=0;for(var i=0;i<s.length;i++)n=(n*31+s.charCodeAt(i))>>>0;return n}
+  function eraColor(name){for(var i=0;i<ERAS.length;i++)if(ERAS[i].key===name)return ERAS[i].color;return "var(--text-muted)"}
+  function fmtDate(d){var p=d.split("-");if(p.length<3)return d;var wd=["일","월","화","수","목","금","토"][new Date(+p[0],+p[1]-1,+p[2]).getDay()];return p[0]+"."+p[1]+"."+p[2]+" ("+wd+")"}
+  function shortDate(d){var p=d.split("-");return p[1]+"/"+p[2]}
+
+  // 저장소 값 위에 이 기기에서 바꾼 값을 덮어 보여준다
+  function view(day,i){
+    var it=day.items[i],l=state.local[key(day.date,i)];
+    var v={liked:!!it.liked,note:it.note||"",local:false};
+    if(l){if(typeof l.liked==="boolean"&&l.liked!==v.liked){v.liked=l.liked;v.local=true}
+          if(typeof l.note==="string"&&l.note!==v.note){v.note=l.note;v.local=true}}
+    return v;
+  }
+  // 저장소가 따라잡은 항목은 기기 저장분에서 지운다
+  function pruneLocal(){
+    var changed=false;
+    state.days.forEach(function(d){d.items.forEach(function(it,i){
+      var k=key(d.date,i),l=state.local[k];if(!l)return;
+      var sameLike=typeof l.liked!=="boolean"||l.liked===!!it.liked;
+      var sameNote=typeof l.note!=="string"||l.note===(it.note||"");
+      if(sameLike&&sameNote){delete state.local[k];changed=true}
+    })});
+    if(changed)saveLocal();
+  }
+  function pendingList(){
+    var out=[];
+    state.days.forEach(function(d){d.items.forEach(function(it,i){var v=view(d,i);if(v.local)out.push({d:d,i:i,it:it,v:v})})});
+    return out;
+  }
+
+  function composers(){
+    var m={};
+    state.days.forEach(function(d){d.items.forEach(function(it,i){
+      var k=it.composer||"?",v=view(d,i);
+      if(!m[k])m[k]={name:k,born:it.born||null,years:it.composerYears||"",era:it.era||"",works:[],liked:0};
+      if(!m[k].born&&it.born)m[k].born=it.born;
+      m[k].works.push({work:it.work,liked:v.liked,note:v.note});if(v.liked)m[k].liked++;
+    })});
+    return Object.keys(m).map(function(k){return m[k]});
+  }
+
+  function drawSky(){
+    var s=$("sky");while(s.firstChild)s.removeChild(s.firstChild);
+    var g=el("g",{"aria-hidden":"true"});
+    for(var i=0;i<110;i++){var r=(hash("bg"+i)%1000)/1000;g.appendChild(el("circle",{cx:hash("x"+i)%1080,cy:hash("y"+i)%360,r:(0.3+r).toFixed(2),fill:"var(--star-dust)",opacity:(0.3+r*0.5).toFixed(2)}))}
+    s.appendChild(g);
+    ERAS.forEach(function(e){
+      var x1=xOf(e.from),x2=xOf(e.to);
+      s.appendChild(el("line",{x1:x1+4,y1:40,x2:x2-4,y2:40,stroke:e.color,"stroke-width":2,"stroke-linecap":"round",opacity:.85}));
+      s.appendChild(el("text",{x:x1+4,y:30,class:"era-t",fill:e.color},e.key));
+    });
+    [1650,1700,1750,1800,1850,1900,1950].forEach(function(y){
+      s.appendChild(el("line",{x1:xOf(y),y1:52,x2:xOf(y),y2:338,stroke:"var(--thread)","stroke-dasharray":"2 5"}));
+      s.appendChild(el("text",{x:xOf(y),y:352,class:"yr","text-anchor":"middle"},y));
+    });
+    var cs=composers().filter(function(c){return c.born});
+    if(!cs.length){s.appendChild(el("text",{x:540,y:195,"text-anchor":"middle",fill:"var(--text-muted)","font-size":"14"},"첫 추천이 도착하면 이 하늘에 별이 뜹니다"));return}
+    var placed=[];
+    cs.sort(function(a,b){return a.born-b.born});
+    cs.forEach(function(c){
+      var x=xOf(c.born),y=Y0+(hash(c.name)%(Y1-Y0));
+      for(var t=0;t<30;t++){var hit=placed.some(function(p){return Math.abs(p.x-x)<70&&Math.abs(p.y-y)<34});if(!hit)break;y=Y0+((y-Y0+47)%(Y1-Y0))}
+      placed.push({x:x,y:y});c.x=x;c.y=y;
+    });
+    for(var j=1;j<cs.length;j++)s.appendChild(el("line",{x1:cs[j-1].x,y1:cs[j-1].y,x2:cs[j].x,y2:cs[j].y,stroke:"var(--thread)","stroke-width":1}));
+    cs.forEach(function(c){
+      var liked=c.liked>0,r=liked?5+Math.min(c.liked,5)*1.6:3.5;
+      var grp=el("g",{class:"star"+(liked?"":" faint")+(state.selected===c.name?" sel":""),tabindex:"0",role:"button","aria-label":c.name+" "+c.works.length+"곡, 좋아요 "+c.liked});
+      if(liked)grp.appendChild(el("circle",{cx:c.x,cy:c.y,r:r*2.4,fill:"var(--gold)",opacity:.14}));
+      grp.appendChild(el("circle",{class:"ring",cx:c.x,cy:c.y,r:r+5,fill:"none",stroke:"transparent"}));
+      grp.appendChild(el("circle",{class:"core",cx:c.x,cy:c.y,r:r,fill:liked?"var(--gold)":"var(--star-dim)"}));
+      c.works.slice(0,8).forEach(function(w,k){var a=k*0.9+((hash(c.name)%10)/10);grp.appendChild(el("circle",{cx:(c.x+Math.cos(a)*(r+9)).toFixed(1),cy:(c.y+Math.sin(a)*(r+9)).toFixed(1),r:w.liked?1.8:1.1,fill:w.liked?"var(--gold)":"var(--star-dim)"}))});
+      grp.appendChild(el("text",{x:c.x,y:c.y-r-12,"text-anchor":"middle"},c.name));
+      function pick(){state.selected=state.selected===c.name?null:c.name;render()}
+      grp.addEventListener("click",pick);
+      grp.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();pick()}});
+      s.appendChild(grp);
+    });
+  }
+
+  function drawDetail(){
+    var d=$("detail"),c=composers().filter(function(x){return x.name===state.selected})[0];
+    if(!c){d.hidden=true;return}
+    d.hidden=false;d.innerHTML="";
+    d.appendChild(h("h2",null,c.name));
+    d.appendChild(h("div","meta",[c.years,c.era].filter(Boolean).join(" · ")+" · 추천 "+c.works.length+"곡"));
+    var ul=h("ul");c.works.forEach(function(w){ul.appendChild(h("li",w.liked?"liked":"",w.work+(w.note?"  — "+w.note:"")))});
+    d.appendChild(ul);
+  }
+
+  function drawPending(){
+    var list=pendingList(),box=$("pending");
+    if(!list.length){box.hidden=true;$("copyBox").hidden=true;return}
+    box.hidden=false;
+    $("pendingText").textContent="이 기기에서 바꾼 기록 "+list.length+"건이 아직 반영되지 않았어요.";
+  }
+  function pendingMessage(){
+    var lines=["음악성좌 기록 반영해줘:"];
+    pendingList().forEach(function(p){
+      var parts=[];
+      if(p.v.liked!==!!p.it.liked)parts.push(p.v.liked?"★ 좋아요":"★ 취소");
+      if(p.v.note!==(p.it.note||""))parts.push("메모: "+(p.v.note||"(지움)"));
+      lines.push("- "+shortDate(p.d.date)+" "+(p.i+1)+"번 "+p.it.composer+" – "+p.it.work+" / "+parts.join(" / "));
+    });
+    return lines.join("\n");
+  }
+  $("copyBtn").addEventListener("click",function(){
+    var txt=pendingMessage(),btn=this,box=$("copyBox");
+    function shown(){box.hidden=false;box.value=txt;box.focus();box.select();btn.textContent="문구를 선택해 두었어요"}
+    try{
+      navigator.clipboard.writeText(txt).then(function(){btn.textContent="복사했어요 · Claude에게 붙여넣기";box.hidden=true},shown);
+    }catch(e){shown()}
+  });
+
+  function drawLog(){
+    var log=$("log");log.innerHTML="";
+    var days=state.days.slice().sort(function(a,b){return a.date<b.date?1:-1});
+    if(!days.length){var em=h("div","empty");em.appendChild(h("strong",null,"아직 도착한 추천이 없어요"));em.appendChild(document.createTextNode("평일 저녁 6시에 카카오톡으로 두 곡이 오면 여기에 날짜별로 쌓여요."));log.appendChild(em);return}
+    var any=false;
+    days.forEach(function(day){
+      var items=day.items.map(function(it,i){return {it:it,i:i,v:view(day,i)}}).filter(function(o){return state.filter==="all"||o.v.liked});
+      if(!items.length)return;any=true;
+      var box=h("div","day");box.appendChild(h("div","day-date",fmtDate(day.date)));
+      var pair=h("div","pair");
+      items.forEach(function(o){
+        var it=o.it,v=o.v,card=h("article","card"+(v.liked?" is-liked":""));
+        var slot=h("div","slot");slot.appendChild(h("span","pill",(o.i+1)+" · "+(it.slot||"추천")));
+        var er=h("span","era-pill",[it.era,it.composerYears].filter(Boolean).join(" · "));er.style.color=eraColor(it.era);slot.appendChild(er);
+        card.appendChild(slot);
+        card.appendChild(h("h3",null,it.work));
+        card.appendChild(h("div","who",it.composer+(it.performer?" · "+it.performer:"")));
+        if(it.desc)card.appendChild(h("p",null,it.desc));
+        var row=h("div","row");
+        if(it.link){var a=h("a","yt","유튜브에서 듣기 ↗");a.href=it.link;a.target="_blank";a.rel="noopener";row.appendChild(a)}
+        var like=h("button","like",v.liked?"★ 마음에 들어요":"☆ 마음에 들면");like.setAttribute("aria-pressed",v.liked?"true":"false");
+        row.appendChild(like);card.appendChild(row);
+        var nr=h("div","note-row"),ta=h("textarea");ta.id="note-"+day.date+"-"+o.i;ta.placeholder="한 줄 감상 (예: 2악장 첼로가 오래 남음)";ta.value=v.note;ta.setAttribute("aria-label",it.work+" 감상 메모");
+        var sv=h("button","save","메모 저장");nr.appendChild(ta);nr.appendChild(sv);card.appendChild(nr);
+        var st=h("div","status");st.setAttribute("aria-live","polite");if(v.local)st.appendChild(h("span","local-tag","이 기기에만 저장됨"));card.appendChild(st);
+        like.addEventListener("click",function(){
+          var k=key(day.date,o.i),l=state.local[k]||{};l.liked=!view(day,o.i).liked;state.local[k]=l;saveLocal();pruneLocal();render();
+        });
+        sv.addEventListener("click",function(){
+          var k=key(day.date,o.i),l=state.local[k]||{};l.note=ta.value.trim();state.local[k]=l;saveLocal();pruneLocal();render();
+        });
+        pair.appendChild(card);
+      });
+      box.appendChild(pair);log.appendChild(box);
+    });
+    if(!any){var e2=h("div","empty");e2.appendChild(h("strong",null,"아직 ★를 누른 곡이 없어요"));e2.appendChild(document.createTextNode("전체 탭에서 마음에 든 곡에 ★를 눌러 보세요."));log.appendChild(e2)}
+  }
+
+  function stats(){
+    var pieces=0,liked=0;state.days.forEach(function(d){d.items.forEach(function(it,i){pieces++;if(view(d,i).liked)liked++})});
+    $("nDays").textContent=state.days.length;$("nPieces").textContent=pieces;$("nLiked").textContent=liked;$("nComposers").textContent=composers().length;
+  }
+  function render(){stats();drawSky();drawDetail();drawPending();drawLog()}
+
+  $("tabAll").addEventListener("click",function(){state.filter="all";this.setAttribute("aria-pressed","true");$("tabLiked").setAttribute("aria-pressed","false");drawLog()});
+  $("tabLiked").addEventListener("click",function(){state.filter="liked";this.setAttribute("aria-pressed","true");$("tabAll").setAttribute("aria-pressed","false");drawLog()});
+
+  $("themeToggle").addEventListener("click",function(){
+    var isLight=document.documentElement.getAttribute("data-theme")==="light";
+    if(isLight){document.documentElement.removeAttribute("data-theme");try{localStorage.setItem("seongjwa.theme","dark")}catch(e){}}
+    else{document.documentElement.setAttribute("data-theme","light");try{localStorage.setItem("seongjwa.theme","light")}catch(e){}}
+    this.textContent=isLight?"🌙":"☀️";
+  });
+  if(document.documentElement.getAttribute("data-theme")==="light")$("themeToggle").textContent="☀️";
+
+  fetch("music/recs.json?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(data){
+    state.days=(data.days||[]).map(function(d){return {date:d.date,items:d.items||[]}});
+    pruneLocal();render();
+  }).catch(function(){
+    $("log").innerHTML="";var em=h("div","empty");em.appendChild(h("strong",null,"기록을 불러오지 못했어요"));em.appendChild(document.createTextNode("인터넷 연결을 확인하고 새로고침해 주세요."));$("log").appendChild(em);
+  });
+})();
+</script>
+</body>
+</html>

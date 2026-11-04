@@ -1,5 +1,4 @@
 {
-  "updated": "2026-10-29",
   "days": [
     {
       "date": "2026-10-29",
@@ -10,7 +9,7 @@
           "composerYears": "1819–1896",
           "desc": "1853년 작. 바이올리니스트 요아힘에게 헌정했고, 브람스를 처음 만난 해의 곡. 짧고 서정적인 세 곡.",
           "era": "낭만",
-          "liked": false,
+          "liked": true,
           "link": "https://www.youtube.com/watch?v=G2yVMWbslCM",
           "note": "",
           "performer": "자닌 얀센 · 데니스 코주힌",
@@ -32,5 +31,6 @@
         }
       ]
     }
-  ]
+  ],
+  "updated": "2026-10-29"
 }

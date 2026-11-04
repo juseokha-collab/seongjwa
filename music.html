@@ -141,7 +141,7 @@
 
 <main class="wrap">
   <div class="intro">
-    <p>평일 저녁 6시, 카카오톡으로 받은 클래식 두 곡이 날짜별로 쌓이고, 마음에 든 곡의 작곡가는 금빛 별이 됩니다.</p>
+    <p>평일 저녁 5시 50분, 카카오톡으로 받은 클래식 두 곡이 날짜별로 쌓이고, 마음에 든 곡의 작곡가는 금빛 별이 됩니다.</p>
     <div class="stats" aria-live="polite">
       <div><b id="nDays">0</b>받은 날</div>
       <div><b id="nPieces">0</b>추천곡</div>
@@ -322,7 +322,7 @@
   function drawLog(){
     var log=$("log");log.innerHTML="";
     var days=state.days.slice().sort(function(a,b){return a.date<b.date?1:-1});
-    if(!days.length){var em=h("div","empty");em.appendChild(h("strong",null,"아직 도착한 추천이 없어요"));em.appendChild(document.createTextNode("평일 저녁 6시에 카카오톡으로 두 곡이 오면 여기에 날짜별로 쌓여요."));log.appendChild(em);return}
+    if(!days.length){var em=h("div","empty");em.appendChild(h("strong",null,"아직 도착한 추천이 없어요"));em.appendChild(document.createTextNode("평일 저녁 5시 50분에 카카오톡으로 두 곡이 오면 여기에 날짜별로 쌓여요."));log.appendChild(em);return}
     var any=false;
     days.forEach(function(day){
       var items=day.items.map(function(it,i){return {it:it,i:i,v:view(day,i)}}).filter(function(o){return state.filter==="all"||o.v.liked});

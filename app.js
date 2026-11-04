@@ -523,6 +523,13 @@
                 STATE.timeAnchors[String(lt.year)] += appliedDx;
               }
             });
+            if(appliedDx){
+              // people also pinned by a manual drag (manualX) are frozen pixel positions too,
+              // so they need to ride along with this tick or they drift out of chronological order
+              STATE.people.forEach(function(q){
+                if(q.manualX!=null && q.sortYear>=year) q.manualX += appliedDx;
+              });
+            }
             commit();
           }
         }

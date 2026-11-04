@@ -691,7 +691,7 @@
         var ng=el("g",{class:"conn-node"});
         ng.appendChild(el("circle",{class:"conn-core", cx:cx, cy:cy, r:4.5}));
         var label=el("text",{class:"conn-label", x:cx, y:cy-24});
-        label.textContent = conn.name;
+        label.textContent = conn.relation ? (conn.relation+" "+conn.name) : conn.name;
         ng.appendChild(label);
         var yrsLine=el("text",{class:"conn-years", x:cx, y:cy-12});
         yrsLine.textContent = yearsLabel(conn);
@@ -832,7 +832,7 @@
     if(p.connections && p.connections.length){
       var connHtml = p.connections.map(function(cn){
         var yrs = cn.sortYear!=null ? (fmtYear(cn.sortYear)+(cn.deathYear!=null?("-"+fmtYear(cn.deathYear)):"")) : "";
-        var line = escapeHtml(cn.name);
+        var line = (cn.relation ? escapeHtml(cn.relation)+" · " : "")+escapeHtml(cn.name);
         if(yrs) line += " "+yrs;
         if(cn.note) line += " · "+escapeHtml(cn.note);
         return line;
@@ -1129,10 +1129,12 @@
     var row=document.createElement("div");
     row.className="conn-row";
     row.innerHTML =
+      '<input type="text" class="conn-relation" placeholder="호칭 (예: 아내)">'+
       '<input type="text" class="conn-name" placeholder="인연">'+
-      '<input type="text" class="conn-year" placeholder="출생-사망 (예: 1800-1850)">'+
+      '<input type="text" class="conn-year" placeholder="출생-사망 (선택, 예: 1800-1850)">'+
       '<input type="text" class="conn-note" placeholder="비고">'+
       '<button type="button" class="conn-remove" aria-label="인연 삭제">✕</button>';
+    row.querySelector(".conn-relation").value = conn ? (conn.relation||"") : "";
     row.querySelector(".conn-name").value = conn ? (conn.name||"") : "";
     var yearVal = "";
     if(conn){
@@ -1257,11 +1259,12 @@
       document.querySelectorAll("#pmConnList .conn-row").forEach(function(row){
         var cname = row.querySelector(".conn-name").value.trim();
         if(!cname) return;
+        var crelation = row.querySelector(".conn-relation").value.trim();
         var cnote = row.querySelector(".conn-note").value.trim();
         var cyearRaw = row.querySelector(".conn-year").value.trim();
         var range = parseYearRange(cyearRaw);
         connections.push({
-          id:uid("conn"), name:cname,
+          id:uid("conn"), name:cname, relation: crelation||null,
           sortYear: range.birth?range.birth.y:null, birthMonth: range.birth?range.birth.m:null, birthDay: range.birth?range.birth.d:null,
           deathYear: range.death?range.death.y:null, deathMonth: range.death?range.death.m:null, deathDay: range.death?range.death.d:null,
           note: cnote||null

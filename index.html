@@ -347,6 +347,8 @@
   .field-stack{display:flex; flex-direction:column; gap:6px;}
   .conn-row{display:flex; gap:8px; margin-bottom:6px;}
   .conn-row input{flex:1; min-width:0;}
+  .conn-row .conn-relation{flex:0 0 84px;}
+  .conn-row .conn-year{flex:0 0 150px;}
   .conn-row .conn-remove{flex:none; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:.9rem; padding:0 4px;}
   .conn-row .conn-remove:hover{color:var(--danger,#e05a5a);}
   .modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:20px;}
@@ -450,7 +452,7 @@
         </div>
       </div>
       <div class="field">
-        <label title="선택한 인물을 클릭하면 해당 출생연도 위치에 점선으로 연결되어 나타납니다">인연</label>
+        <label title="출생연도를 입력하면 선택 시 성좌에도 점선으로 표시됩니다. 연도 없이도 우측 패널 목록에는 항상 표시돼요">인연</label>
         <div id="pmConnList"></div>
         <button type="button" class="mini-btn" id="pmConnAddBtn">+ 인연 추가</button>
       </div>
@@ -491,7 +493,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1792989071"></script>
+<script src="app.js?v=1793782390"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

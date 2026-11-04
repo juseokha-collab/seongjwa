@@ -494,14 +494,13 @@
       t.style.left=tick.x+"px";
       t.textContent=fmtYear(tick.year);
       var prevX = i>0 ? layout.ticks[i-1].x : null;
-      var nextX = i<layout.ticks.length-1 ? layout.ticks[i+1].x : null;
-      t.addEventListener("pointerdown", function(year,el,lo,hi,startX){ return function(e){
+      var laterTicks = layout.ticks.slice(i+1); // ticks to the right ride along with the drag
+      t.addEventListener("pointerdown", function(year,el,lo,startX,later){ return function(e){
         e.preventDefault();
         e.stopPropagation();
         var st = {startClientX:e.clientX, moved:false};
         function clamp(nx){
           if(lo!=null) nx = Math.max(nx, lo+MIN_ANCHOR_GAP);
-          if(hi!=null) nx = Math.min(nx, hi-MIN_ANCHOR_GAP);
           return nx;
         }
         function onMove(ev){
@@ -514,13 +513,22 @@
           document.removeEventListener("pointerup", onUp);
           if(st.moved){
             var dx = ev.clientX - st.startClientX;
-            STATE.timeAnchors[String(year)] = clamp(startX+dx);
+            var newX = clamp(startX+dx);
+            var appliedDx = newX - startX;
+            STATE.timeAnchors[String(year)] = newX;
+            later.forEach(function(lt){
+              // only ticks already pinned by a manual drag need to be carried along —
+              // auto-placed ticks already cascade from the previous tick's x in buildYearToX
+              if(STATE.timeAnchors[String(lt.year)]!=null){
+                STATE.timeAnchors[String(lt.year)] += appliedDx;
+              }
+            });
             commit();
           }
         }
         document.addEventListener("pointermove", onMove);
         document.addEventListener("pointerup", onUp);
-      }; }(tick.year, t, prevX, nextX, tick.x));
+      }; }(tick.year, t, prevX, tick.x, laterTicks));
       yearRow.appendChild(t);
     });
 

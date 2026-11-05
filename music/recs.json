@@ -61,7 +61,38 @@
           "work": "바이올린 협주곡 A장조 Op.5 No.2"
         }
       ]
+    },
+    {
+      "date": "2026-11-05",
+      "items": [
+        {
+          "born": 1910,
+          "composer": "새뮤얼 바버",
+          "composerYears": "1910–1981",
+          "desc": "영화 <플래툰>에서 일라이어스가 쓰러지는 장면에 흐른 비가. 느리게 차오르는 현의 슬픔이 인상적이다.",
+          "era": "근현대",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=0EpHfs9H10I",
+          "note": "",
+          "performer": "레너드 번스타인 · 뉴욕 필하모닉",
+          "slot": "영화 속 클래식",
+          "work": "현을 위한 아다지오 Op.11"
+        },
+        {
+          "born": 1810,
+          "composer": "쇼팽",
+          "composerYears": "1810–1849",
+          "desc": "누구나 한 번쯤 들어본 쇼팽의 대표 녹턴. 노래하듯 흐르는 밤의 선율.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=WbcccfyCBl8",
+          "note": "",
+          "performer": "조성진",
+          "slot": "익숙한 명곡",
+          "work": "녹턴 Op.9 No.2"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-04"
+  "updated": "2026-11-05"
 }

@@ -92,7 +92,38 @@
           "work": "녹턴 Op.9 No.2"
         }
       ]
+    },
+    {
+      "date": "2026-11-06",
+      "items": [
+        {
+          "born": 1825,
+          "composer": "요한 슈트라우스 2세",
+          "composerYears": "1825–1899",
+          "desc": "영화 <2001 스페이스 오디세이>에서 우주선이 정거장에 도킹하는 장면에 흐른다. 빈 신년음악회의 단골 앙코르 왈츠.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=mTc0ittAOWM",
+          "note": "",
+          "performer": "빌리 보스코프스키 · 빈 필하모닉",
+          "slot": "영화 속 클래식",
+          "work": "아름답고 푸른 도나우"
+        },
+        {
+          "born": 1770,
+          "composer": "베토벤",
+          "composerYears": "1770–1827",
+          "desc": "누구나 첫 소절을 아는 피아노 소품. 단순한 선율 속 쓸쓸함과 밝음이 오간다.",
+          "era": "고전",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=QS6DepMI2bU",
+          "note": "",
+          "performer": "랑랑",
+          "slot": "익숙한 명곡",
+          "work": "엘리제를 위하여"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-05"
+  "updated": "2026-11-06"
 }

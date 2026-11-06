@@ -620,7 +620,7 @@
       g.appendChild(el("rect",{class:"label-bg", x:pos.x-labelW/2, y:pos.y-37, width:labelW, height:29, rx:5}));
       var flag = flagEmoji(p.nationality);
       if(flag){
-        var flagEl=el("text",{class:"flag", x:pos.x, y:pos.y, "text-anchor":"middle", "dominant-baseline":"central", filter:"url(#starglow)"});
+        var flagEl=el("text",{class:"flag", x:pos.x, y:pos.y, "text-anchor":"middle", "dominant-baseline":"central", filter:"url(#starglow)", style:"fill:"+color+";"});
         flagEl.textContent = flag;
         g.appendChild(flagEl);
       } else {

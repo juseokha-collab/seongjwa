@@ -180,6 +180,7 @@
   .conn-group.conn-visible{display:block;}
   .conn-edge{fill:none; stroke:#e8495a; stroke-width:1.6; stroke-dasharray:3 4; opacity:.9;}
   .conn-node{pointer-events:auto;}
+  .conn-node .conn-label-bg{fill:var(--bg-deep); opacity:.82; pointer-events:none;}
   .conn-node circle.conn-core{fill:#e8495a; filter:url(#starglow);}
   .conn-node text.conn-label{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:#f1a3ab; text-anchor:middle; pointer-events:none;}
   .conn-node text.conn-years{font-family:Consolas,"JetBrains Mono",monospace; font-size:9px; fill:#c98087; text-anchor:middle; pointer-events:none;}
@@ -523,7 +524,7 @@
   </div>
 </div>
 
-<script src="app.js?v=1793955269"></script>
+<script src="app.js?v=1794190933"></script>
 <script>
 (function(){
   if(!window.firebase || !window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey || !window.SEONGJWA) return;

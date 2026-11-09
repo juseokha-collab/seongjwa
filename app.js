@@ -687,31 +687,34 @@
     });
     stage.appendChild(nodeLayer);
 
-    // connection stars — hidden until their parent person is selected (see highlightSelection)
+    // connection stars — hidden until their parent person is selected (see highlightSelection).
+    // They ignore the timeline x-axis and fan out radially around the person instead:
+    // earlier-born 인연 on the left, later-born on the right, both in chronological order
+    // left→right along an arc over the person's head, so nothing piles onto a near-same-year star.
+    var connEdgeLayer=el("g",{class:"conn-layer"});
     var connLayer=el("g",{class:"conn-layer"});
     connGroups={};
     STATE.people.forEach(function(p){
       if(!p.connections || !p.connections.length) return;
       var pos = layout.pos[p.id];
       if(!pos) return;
+      var placed = connRadialPositions(p, pos, layout);
+      if(!placed.length) return;
+      var eg=el("g",{class:"conn-group"});
       var g=el("g",{class:"conn-group"});
-      p.connections.forEach(function(conn){
-        if(conn.sortYear==null) return;
-        var cx = layout.yearToX(conn.sortYear), cy = pos.y;
+      placed.forEach(function(pl){
+        var conn=pl.conn, cx=pl.x, cy=pl.y;
         var ddx=cx-pos.x, ddy=cy-pos.y;
         var dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
         var NODE_R=7;
         var startX=pos.x+ddx/dlen*NODE_R, startY=pos.y+ddy/dlen*NODE_R;
         var endX=cx-ddx/dlen*NODE_R, endY=cy-ddy/dlen*NODE_R;
-        g.appendChild(el("path",{class:"conn-edge", d:"M"+startX+","+startY+" L"+endX+","+endY, "stroke-linecap":"round"}));
+        // edges sit beneath the node layer so they never strike through the selected person's name
+        eg.appendChild(el("path",{class:"conn-edge", d:"M"+startX+","+startY+" L"+endX+","+endY, "stroke-linecap":"round"}));
         var ng=el("g",{class:"conn-node"});
         var connLabelText = conn.relation ? (conn.relation+" "+conn.name) : conn.name;
         var connYearsText = yearsLabel(conn);
-        measureCtx.font = "700 12px "+NODE_LABEL_FONT;
-        var connNameW = measureCtx.measureText(connLabelText).width;
-        measureCtx.font = "9px "+NODE_LABEL_FONT;
-        var connYearW = measureCtx.measureText(connYearsText).width;
-        var connLabelW = Math.max(connNameW, connYearW)+10;
+        var connLabelW = pl.w;
         ng.appendChild(el("rect",{class:"conn-label-bg", x:cx-connLabelW/2, y:cy-37, width:connLabelW, height:29, rx:5}));
         ng.appendChild(el("circle",{class:"conn-core", cx:cx, cy:cy, r:4.5}));
         var label=el("text",{class:"conn-label", x:cx, y:cy-24});
@@ -727,15 +730,70 @@
         ng.appendChild(titleEl);
         g.appendChild(ng);
       });
+      connEdgeLayer.appendChild(eg);
       connLayer.appendChild(g);
-      connGroups[p.id]=g;
+      connGroups[p.id]=[eg,g];
     });
+    stage.insertBefore(connEdgeLayer, nodeLayer);
     stage.appendChild(connLayer);
 
     if(currentId){
       if(nodeEls[currentId]) highlightSelection(currentId);
       else clearSelection();
     }
+  }
+
+  // Lays out a person's 인연 on arcs around them. Earlier-born connections take the left arc,
+  // same-or-later ones the right arc; on each side years run left→right, climbing from the
+  // horizontal toward the top (or toward the bottom when the person sits near the top edge).
+  // Crowded sides alternate between an inner and an outer ring and the radius grows with the
+  // count so labels keep their own vertical room.
+  function connRadialPositions(p, pos, layout){
+    var list = p.connections.filter(function(c){ return c.sortYear!=null; }).map(function(c, i){
+      var t = c.relation ? (c.relation+" "+c.name) : c.name;
+      measureCtx.font = "700 12px "+NODE_LABEL_FONT;
+      var nw = measureCtx.measureText(t).width;
+      measureCtx.font = "9px "+NODE_LABEL_FONT;
+      var yw = measureCtx.measureText(yearsLabel(c)).width;
+      return {conn:c, i:i, w:Math.max(nw, yw)+10};
+    });
+    var before = list.filter(function(o){ return o.conn.sortYear < p.sortYear; });
+    var after = list.filter(function(o){ return o.conn.sortYear >= p.sortYear; });
+    function byYear(a,b){ return (a.conn.sortYear-b.conn.sortYear) || (a.i-b.i); }
+    before.sort(byYear); after.sort(byYear);
+    var LABEL_H = 44, BASE_R = 130, RING_GAP = 70, ARC = 70*Math.PI/180;
+    var maxW = list.reduce(function(m,o){ return Math.max(m,o.w); }, 0);
+    var baseR = Math.max(BASE_R, labelHalfWidth(p) + maxW/2 + 24);
+    function radiusFor(n){
+      if(n<=1) return baseR;
+      var rings = n>4 ? 2 : 1;
+      var perRing = Math.ceil(n/rings);
+      return Math.max(baseR, LABEL_H*(perRing-1)/ARC);
+    }
+    // flip the fan below the person when an upward fan would run off the top of the map
+    var upNeeded = Math.max(radiusFor(before.length), radiusFor(after.length)) + RING_GAP + 40;
+    var dir = (pos.y - upNeeded < 0) ? 1 : -1;
+    var out = [];
+    function place(side, items){
+      var n = items.length; if(!n) return;
+      var R = radiusFor(n), twoRings = n>4;
+      items.forEach(function(o, k){
+        // k=0 is the earliest. Left side: the earliest sits farthest left on the horizontal and
+        // later ones climb toward the top, closer in. Right side mirrors it: just-after near
+        // the top, the latest farthest right on the horizontal.
+        var f = n===1 ? 0 : (side<0 ? k/(n-1) : (n-1-k)/(n-1));
+        var ang = f*ARC;
+        var r = R + (twoRings && (k%2) ? RING_GAP : 0);
+        var x = pos.x + side*r*Math.cos(ang);
+        var y = pos.y + dir*r*Math.sin(ang);
+        y = Math.max(44, Math.min(layout.height-12, y));
+        x = Math.max(o.w/2+4, Math.min(layout.width-o.w/2-4, x));
+        out.push({conn:o.conn, x:x, y:y, w:o.w});
+      });
+    }
+    place(-1, before);
+    place(1, after);
+    return out;
   }
 
   function highlightSelection(id){
@@ -763,7 +821,7 @@
       nodeEls[nid].classList.toggle("contemporary-node", contemporary);
     });
     Object.keys(connGroups).forEach(function(pid){
-      connGroups[pid].classList.toggle("conn-visible", pid===id);
+      connGroups[pid].forEach(function(g){ g.classList.toggle("conn-visible", pid===id); });
     });
     Object.keys(lifeBands).forEach(function(pid){
       lifeBands[pid].classList.toggle("life-band-visible", pid===id);
@@ -776,7 +834,7 @@
     stage.classList.remove("selected-fade");
     Object.keys(nodeEls).forEach(function(nid){ nodeEls[nid].classList.remove("active-node"); nodeEls[nid].classList.remove("contemporary-node"); });
     edgeEls.forEach(function(l){ l.classList.remove("active-edge"); });
-    Object.keys(connGroups).forEach(function(pid){ connGroups[pid].classList.remove("conn-visible"); });
+    Object.keys(connGroups).forEach(function(pid){ connGroups[pid].forEach(function(g){ g.classList.remove("conn-visible"); }); });
     Object.keys(lifeBands).forEach(function(pid){ lifeBands[pid].classList.remove("life-band-visible"); });
     var panel=document.getElementById("panel");
     panel.classList.remove("open"); panel.setAttribute("aria-hidden","true");

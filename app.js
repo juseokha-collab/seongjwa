@@ -13,7 +13,7 @@
   function labelHalfWidth(p){
     measureCtx.font = "700 12px "+NODE_LABEL_FONT;
     var nameW = measureCtx.measureText(p.name).width;
-    measureCtx.font = "9px "+NODE_LABEL_FONT;
+    measureCtx.font = "600 10px "+NODE_LABEL_FONT;
     var yearW = measureCtx.measureText(yearsLabel(p)).width;
     return Math.max(nameW, yearW)/2;
   }
@@ -162,6 +162,24 @@
     "필리핀":"🇵🇭",
     "로마":"🇮🇹","고대로마":"🇮🇹","로마제국":"🇮🇹"
   };
+  // How far along direction (ux,uy) a line must start from a star's centre to clear its mark
+  // plus a small gap: the nationality code text (e.g. "DE") is a wide box, a plain star a dot.
+  var EDGE_GAP = 6, clearanceCache = {};
+  function nodeClearance(p, ux, uy){
+    var flag = flagEmoji(p.nationality), hw, hh;
+    if(flag){
+      if(clearanceCache[flag]==null){
+        measureCtx.font = "18px "+NODE_LABEL_FONT;
+        // Windows shows flag emoji as two letters ("DE"), others as a picture; cover both
+        clearanceCache[flag] = Math.max(measureCtx.measureText(flag).width/2, 13);
+      }
+      hw = clearanceCache[flag]; hh = 8;
+    } else { hw = 6; hh = 6; }
+    hw += EDGE_GAP; hh += EDGE_GAP;
+    var ax=Math.abs(ux), ay=Math.abs(uy);
+    var tx = ax>1e-6 ? hw/ax : Infinity, ty = ay>1e-6 ? hh/ay : Infinity;
+    return Math.min(tx, ty);
+  }
   function flagEmoji(nat){
     if(!nat) return null;
     var first = nat.split(",")[0].trim();
@@ -597,9 +615,11 @@
       if(!posA||!posB) return;
       var ddx=posB.x-posA.x, ddy=posB.y-posA.y;
       var dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
-      var NODE_R=13; // clears the dot/flag plus the nationality code text sitting at node center
-      var startX=posA.x+ddx/dlen*NODE_R, startY=posA.y+ddy/dlen*NODE_R;
-      var endX=posB.x-ddx/dlen*NODE_R, endY=posB.y-ddy/dlen*NODE_R;
+      var ux=ddx/dlen, uy=ddy/dlen;
+      var trimA=nodeClearance(pa, ux, uy), trimB=nodeClearance(pb, ux, uy);
+      if(trimA+trimB >= dlen-4) return; // stars nearly touching: no room for a line
+      var startX=posA.x+ux*trimA, startY=posA.y+uy*trimA;
+      var endX=posB.x-ux*trimB, endY=posB.y-uy*trimB;
       var attrs={class:"edge", d:"M"+startX+","+startY+" L"+endX+","+endY, "stroke-linecap":"round", "stroke-dasharray":"1 3.4"};
       var line=el("path",attrs);
       line.dataset.a=pa.id; line.dataset.b=pb.id; line.dataset.rid=r.id;
@@ -688,31 +708,34 @@
     });
     stage.appendChild(nodeLayer);
 
-    // connection stars — hidden until their parent person is selected (see highlightSelection)
+    // connection stars — hidden until their parent person is selected (see highlightSelection).
+    // They ignore the timeline x-axis and fan out radially around the person instead:
+    // earlier-born 인연 on the left, later-born on the right, both in chronological order
+    // left→right along an arc over the person's head, so nothing piles onto a near-same-year star.
+    var connEdgeLayer=el("g",{class:"conn-layer"});
     var connLayer=el("g",{class:"conn-layer"});
     connGroups={};
     STATE.people.forEach(function(p){
       if(!p.connections || !p.connections.length) return;
       var pos = layout.pos[p.id];
       if(!pos) return;
+      var placed = connRadialPositions(p, pos, layout);
+      if(!placed.length) return;
+      var eg=el("g",{class:"conn-group"});
       var g=el("g",{class:"conn-group"});
-      p.connections.forEach(function(conn){
-        if(conn.sortYear==null) return;
-        var cx = layout.yearToX(conn.sortYear), cy = pos.y;
+      placed.forEach(function(pl){
+        var conn=pl.conn, cx=pl.x, cy=pl.y;
         var ddx=cx-pos.x, ddy=cy-pos.y;
         var dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
-        var NODE_R=13; // clears the dot/flag plus the nationality code text sitting at node center
-        var startX=pos.x+ddx/dlen*NODE_R, startY=pos.y+ddy/dlen*NODE_R;
+        var NODE_R=8, trimP=nodeClearance(p, ddx/dlen, ddy/dlen);
+        var startX=pos.x+ddx/dlen*trimP, startY=pos.y+ddy/dlen*trimP;
         var endX=cx-ddx/dlen*NODE_R, endY=cy-ddy/dlen*NODE_R;
-        g.appendChild(el("path",{class:"conn-edge", d:"M"+startX+","+startY+" L"+endX+","+endY, "stroke-linecap":"round"}));
+        // edges sit beneath the node layer so they never strike through the selected person's name
+        eg.appendChild(el("path",{class:"conn-edge", d:"M"+startX+","+startY+" L"+endX+","+endY, "stroke-linecap":"round"}));
         var ng=el("g",{class:"conn-node"});
         var connLabelText = conn.relation ? (conn.relation+" "+conn.name) : conn.name;
         var connYearsText = yearsLabel(conn);
-        measureCtx.font = "700 12px "+NODE_LABEL_FONT;
-        var connNameW = measureCtx.measureText(connLabelText).width;
-        measureCtx.font = "9px "+NODE_LABEL_FONT;
-        var connYearW = measureCtx.measureText(connYearsText).width;
-        var connLabelW = Math.max(connNameW, connYearW)+10;
+        var connLabelW = pl.w;
         ng.appendChild(el("rect",{class:"conn-label-bg", x:cx-connLabelW/2, y:cy-37, width:connLabelW, height:29, rx:5}));
         ng.appendChild(el("circle",{class:"conn-core", cx:cx, cy:cy, r:4.5}));
         var label=el("text",{class:"conn-label", x:cx, y:cy-24});
@@ -728,15 +751,97 @@
         ng.appendChild(titleEl);
         g.appendChild(ng);
       });
+      connEdgeLayer.appendChild(eg);
       connLayer.appendChild(g);
-      connGroups[p.id]=g;
+      connGroups[p.id]=[eg,g];
     });
+    stage.insertBefore(connEdgeLayer, nodeLayer);
     stage.appendChild(connLayer);
 
     if(currentId){
       if(nodeEls[currentId]) highlightSelection(currentId);
       else clearSelection();
     }
+    applySearchHighlight();
+  }
+
+  // ---------------- search highlight on the map ----------------
+  // While the search box has text, every matching star gets a pulsing gold ring and a bold
+  // label, everything else dims, and the suggestion under the cursor is marked strongest.
+  var searchHitIds = [], searchActiveId = null;
+  function setSearchHighlight(ids, activeId, scroll){
+    searchHitIds = ids||[]; searchActiveId = activeId||null;
+    applySearchHighlight();
+    if(scroll && searchActiveId && nodeEls[searchActiveId]){
+      var g = nodeEls[searchActiveId], wrap = document.getElementById("stageScroll");
+      var r = g.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+      var off = r.right < w.left+40 || r.left > w.right-40 || r.bottom < w.top+40 || r.top > w.bottom-40;
+      if(off && g.scrollIntoView) g.scrollIntoView({behavior:"smooth", block:"center", inline:"center"});
+    }
+  }
+  function applySearchHighlight(){
+    if(!stage) return;
+    var on = searchHitIds.length>0, hit = {};
+    searchHitIds.forEach(function(id){ hit[id]=true; });
+    stage.classList.toggle("search-on", on);
+    Object.keys(nodeEls).forEach(function(nid){
+      nodeEls[nid].classList.toggle("search-hit", !!hit[nid]);
+      nodeEls[nid].classList.toggle("search-active", on && nid===searchActiveId);
+      if(hit[nid]) nodeEls[nid].parentNode.appendChild(nodeEls[nid]); // draw hits above neighbours
+    });
+  }
+
+  // Lays out a person's 인연 on arcs around them. Earlier-born connections take the left arc,
+  // same-or-later ones the right arc; on each side years run left→right, climbing from the
+  // horizontal toward the top (or toward the bottom when the person sits near the top edge).
+  // Crowded sides alternate between an inner and an outer ring and the radius grows with the
+  // count so labels keep their own vertical room.
+  function connRadialPositions(p, pos, layout){
+    var list = p.connections.filter(function(c){ return c.sortYear!=null; }).map(function(c, i){
+      var t = c.relation ? (c.relation+" "+c.name) : c.name;
+      measureCtx.font = "700 12px "+NODE_LABEL_FONT;
+      var nw = measureCtx.measureText(t).width;
+      measureCtx.font = "600 10px "+NODE_LABEL_FONT;
+      var yw = measureCtx.measureText(yearsLabel(c)).width;
+      return {conn:c, i:i, w:Math.max(nw, yw)+10};
+    });
+    var before = list.filter(function(o){ return o.conn.sortYear < p.sortYear; });
+    var after = list.filter(function(o){ return o.conn.sortYear >= p.sortYear; });
+    function byYear(a,b){ return (a.conn.sortYear-b.conn.sortYear) || (a.i-b.i); }
+    before.sort(byYear); after.sort(byYear);
+    var LABEL_H = 44, BASE_R = 130, RING_GAP = 70, ARC = 70*Math.PI/180;
+    var maxW = list.reduce(function(m,o){ return Math.max(m,o.w); }, 0);
+    var baseR = Math.max(BASE_R, labelHalfWidth(p) + maxW/2 + 24);
+    function radiusFor(n){
+      if(n<=1) return baseR;
+      var rings = n>4 ? 2 : 1;
+      var perRing = Math.ceil(n/rings);
+      return Math.max(baseR, LABEL_H*(perRing-1)/ARC);
+    }
+    // flip the fan below the person when an upward fan would run off the top of the map
+    var upNeeded = Math.max(radiusFor(before.length), radiusFor(after.length)) + RING_GAP + 40;
+    var dir = (pos.y - upNeeded < 0) ? 1 : -1;
+    var out = [];
+    function place(side, items){
+      var n = items.length; if(!n) return;
+      var R = radiusFor(n), twoRings = n>4;
+      items.forEach(function(o, k){
+        // k=0 is the earliest. Left side: the earliest sits farthest left on the horizontal and
+        // later ones climb toward the top, closer in. Right side mirrors it: just-after near
+        // the top, the latest farthest right on the horizontal.
+        var f = n===1 ? 0 : (side<0 ? k/(n-1) : (n-1-k)/(n-1));
+        var ang = f*ARC;
+        var r = R + (twoRings && (k%2) ? RING_GAP : 0);
+        var x = pos.x + side*r*Math.cos(ang);
+        var y = pos.y + dir*r*Math.sin(ang);
+        y = Math.max(44, Math.min(layout.height-12, y));
+        x = Math.max(o.w/2+4, Math.min(layout.width-o.w/2-4, x));
+        out.push({conn:o.conn, x:x, y:y, w:o.w});
+      });
+    }
+    place(-1, before);
+    place(1, after);
+    return out;
   }
 
   function highlightSelection(id){
@@ -764,7 +869,7 @@
       nodeEls[nid].classList.toggle("contemporary-node", contemporary);
     });
     Object.keys(connGroups).forEach(function(pid){
-      connGroups[pid].classList.toggle("conn-visible", pid===id);
+      connGroups[pid].forEach(function(g){ g.classList.toggle("conn-visible", pid===id); });
     });
     Object.keys(lifeBands).forEach(function(pid){
       lifeBands[pid].classList.toggle("life-band-visible", pid===id);
@@ -777,7 +882,7 @@
     stage.classList.remove("selected-fade");
     Object.keys(nodeEls).forEach(function(nid){ nodeEls[nid].classList.remove("active-node"); nodeEls[nid].classList.remove("contemporary-node"); });
     edgeEls.forEach(function(l){ l.classList.remove("active-edge"); });
-    Object.keys(connGroups).forEach(function(pid){ connGroups[pid].classList.remove("conn-visible"); });
+    Object.keys(connGroups).forEach(function(pid){ connGroups[pid].forEach(function(g){ g.classList.remove("conn-visible"); }); });
     Object.keys(lifeBands).forEach(function(pid){ lifeBands[pid].classList.remove("life-band-visible"); });
     var panel=document.getElementById("panel");
     panel.classList.remove("open"); panel.setAttribute("aria-hidden","true");
@@ -1495,7 +1600,7 @@
     var box=document.getElementById("searchSuggest");
     var matches=[], activeIdx=-1;
 
-    function closeBox(){ box.classList.remove("open"); box.innerHTML=""; matches=[]; activeIdx=-1; }
+    function closeBox(){ box.classList.remove("open"); box.innerHTML=""; matches=[]; activeIdx=-1; setSearchHighlight([]); }
     function renderBox(){
       if(!matches.length){ closeBox(); return; }
       box.innerHTML = matches.map(function(p,i){
@@ -1507,6 +1612,10 @@
       box.classList.add("open");
       box.querySelectorAll(".search-suggest-item").forEach(function(el){
         // mousedown (not click) so this fires before the input's blur-triggered close
+        el.addEventListener("mouseenter", function(){
+          var i=parseInt(el.getAttribute("data-idx"),10);
+          if(matches[i]) setSearchHighlight(searchHitIds, matches[i].id, true);
+        });
         el.addEventListener("mousedown", function(e){
           e.preventDefault();
           pick(parseInt(el.getAttribute("data-idx"),10));
@@ -1516,11 +1625,13 @@
     function updateMatches(){
       var q=input.value.trim().toLowerCase();
       if(!q){ closeBox(); return; }
-      matches = STATE.people.filter(function(p){
+      var all = STATE.people.filter(function(p){
         return p.name.toLowerCase().indexOf(q)>-1 || (p.fullName && p.fullName.toLowerCase().indexOf(q)>-1);
-      }).slice(0,8);
+      });
+      matches = all.slice(0,8);
       activeIdx = matches.length ? 0 : -1;
       renderBox();
+      setSearchHighlight(all.map(function(p){ return p.id; }), matches.length ? matches[0].id : null, true);
     }
     function pick(idx){
       var p=matches[idx];
@@ -1534,8 +1645,8 @@
     input.addEventListener("focus", function(){ if(input.value.trim()) updateMatches(); });
     input.addEventListener("blur", function(){ setTimeout(closeBox, 120); });
     input.addEventListener("keydown", function(e){
-      if(e.key==="ArrowDown" && matches.length){ e.preventDefault(); activeIdx=(activeIdx+1)%matches.length; renderBox(); return; }
-      if(e.key==="ArrowUp" && matches.length){ e.preventDefault(); activeIdx=(activeIdx-1+matches.length)%matches.length; renderBox(); return; }
+      if(e.key==="ArrowDown" && matches.length){ e.preventDefault(); activeIdx=(activeIdx+1)%matches.length; renderBox(); setSearchHighlight(searchHitIds, matches[activeIdx].id, true); return; }
+      if(e.key==="ArrowUp" && matches.length){ e.preventDefault(); activeIdx=(activeIdx-1+matches.length)%matches.length; renderBox(); setSearchHighlight(searchHitIds, matches[activeIdx].id, true); return; }
       if(e.key==="Escape"){ closeBox(); return; }
       if(e.key!=="Enter") return;
       if(matches.length) pick(activeIdx>=0 ? activeIdx : 0);

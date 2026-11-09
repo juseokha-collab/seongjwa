@@ -13,7 +13,7 @@
   function labelHalfWidth(p){
     measureCtx.font = "700 12px "+NODE_LABEL_FONT;
     var nameW = measureCtx.measureText(p.name).width;
-    measureCtx.font = "9px "+NODE_LABEL_FONT;
+    measureCtx.font = "9.5px "+NODE_LABEL_FONT;
     var yearW = measureCtx.measureText(yearsLabel(p)).width;
     return Math.max(nameW, yearW)/2;
   }
@@ -753,7 +753,7 @@
       var t = c.relation ? (c.relation+" "+c.name) : c.name;
       measureCtx.font = "700 12px "+NODE_LABEL_FONT;
       var nw = measureCtx.measureText(t).width;
-      measureCtx.font = "9px "+NODE_LABEL_FONT;
+      measureCtx.font = "9.5px "+NODE_LABEL_FONT;
       var yw = measureCtx.measureText(yearsLabel(c)).width;
       return {conn:c, i:i, w:Math.max(nw, yw)+10};
     });

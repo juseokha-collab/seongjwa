@@ -826,7 +826,25 @@
     var pos = layout.pos[id];
     if(!pos) return;
     var wrap = document.getElementById("stageScroll");
-    var target = pos.x - wrap.clientWidth/2;
+    var p = personOf(id);
+
+    // the detail panel is a fixed right-side overlay (on narrow screens — see the
+    // @media(max-width:760px) rule — it's a bottom sheet instead, which doesn't eat
+    // into horizontal space) — scroll within whatever width is left uncovered. Uses
+    // offsetWidth (layout size, ignores the open/close transform) rather than
+    // getBoundingClientRect, since this runs right as the panel starts animating open.
+    var visibleWidth = wrap.clientWidth;
+    var panel = document.getElementById("panel");
+    if(panel && window.innerWidth>760){
+      visibleWidth = Math.max(100, wrap.clientWidth - panel.offsetWidth);
+    }
+
+    var endX = pos.x;
+    if(p && p.deathYear!=null) endX = layout.yearToX(p.deathYear);
+    var spanW = Math.max(0, endX - pos.x);
+    var target = spanW<=visibleWidth
+      ? pos.x - (visibleWidth-spanW)/2   // center birth..death span in the uncovered area
+      : pos.x - visibleWidth*0.15;       // lifespan too wide to fit — lead in from the birth end
     wrap.scrollTo({left:Math.max(0,target), behavior:"smooth"});
   }
 

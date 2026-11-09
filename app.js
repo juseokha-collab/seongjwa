@@ -1473,12 +1473,53 @@
   // ---------------- search ----------------
   function initSearch(){
     var input=document.getElementById("searchInput");
-    input.addEventListener("keydown", function(e){
-      if(e.key!=="Enter") return;
+    var box=document.getElementById("searchSuggest");
+    var matches=[], activeIdx=-1;
+
+    function closeBox(){ box.classList.remove("open"); box.innerHTML=""; matches=[]; activeIdx=-1; }
+    function renderBox(){
+      if(!matches.length){ closeBox(); return; }
+      box.innerHTML = matches.map(function(p,i){
+        return '<div class="search-suggest-item'+(i===activeIdx?" active":"")+'" data-idx="'+i+'">'+
+          '<span>'+escapeHtml(p.fullName||p.name)+'</span>'+
+          '<span class="ss-years">'+escapeHtml(yearsLabel(p))+'</span>'+
+        '</div>';
+      }).join("");
+      box.classList.add("open");
+      box.querySelectorAll(".search-suggest-item").forEach(function(el){
+        // mousedown (not click) so this fires before the input's blur-triggered close
+        el.addEventListener("mousedown", function(e){
+          e.preventDefault();
+          pick(parseInt(el.getAttribute("data-idx"),10));
+        });
+      });
+    }
+    function updateMatches(){
       var q=input.value.trim().toLowerCase();
-      if(!q) return;
-      var match = STATE.people.find(function(p){ return p.name.toLowerCase().indexOf(q)>-1; });
-      if(match) selectNode(match.id);
+      if(!q){ closeBox(); return; }
+      matches = STATE.people.filter(function(p){
+        return p.name.toLowerCase().indexOf(q)>-1 || (p.fullName && p.fullName.toLowerCase().indexOf(q)>-1);
+      }).slice(0,8);
+      activeIdx = matches.length ? 0 : -1;
+      renderBox();
+    }
+    function pick(idx){
+      var p=matches[idx];
+      if(!p) return;
+      selectNode(p.id);
+      input.value="";
+      closeBox();
+    }
+
+    input.addEventListener("input", updateMatches);
+    input.addEventListener("focus", function(){ if(input.value.trim()) updateMatches(); });
+    input.addEventListener("blur", function(){ setTimeout(closeBox, 120); });
+    input.addEventListener("keydown", function(e){
+      if(e.key==="ArrowDown" && matches.length){ e.preventDefault(); activeIdx=(activeIdx+1)%matches.length; renderBox(); return; }
+      if(e.key==="ArrowUp" && matches.length){ e.preventDefault(); activeIdx=(activeIdx-1+matches.length)%matches.length; renderBox(); return; }
+      if(e.key==="Escape"){ closeBox(); return; }
+      if(e.key!=="Enter") return;
+      if(matches.length) pick(activeIdx>=0 ? activeIdx : 0);
     });
   }
 

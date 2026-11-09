@@ -597,9 +597,10 @@
       if(!posA||!posB) return;
       var ddx=posB.x-posA.x, ddy=posB.y-posA.y;
       var dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
-      var NODE_R=7;
+      var NODE_R=13; // clears the dot/flag plus the nationality code text sitting at node center
+      var startX=posA.x+ddx/dlen*NODE_R, startY=posA.y+ddy/dlen*NODE_R;
       var endX=posB.x-ddx/dlen*NODE_R, endY=posB.y-ddy/dlen*NODE_R;
-      var attrs={class:"edge", d:"M"+posA.x+","+posA.y+" L"+endX+","+endY, "stroke-linecap":"round", "stroke-dasharray":"1 3.4"};
+      var attrs={class:"edge", d:"M"+startX+","+startY+" L"+endX+","+endY, "stroke-linecap":"round", "stroke-dasharray":"1 3.4"};
       var line=el("path",attrs);
       line.dataset.a=pa.id; line.dataset.b=pb.id; line.dataset.rid=r.id;
       edgeLayer.appendChild(line);
@@ -700,7 +701,7 @@
         var cx = layout.yearToX(conn.sortYear), cy = pos.y;
         var ddx=cx-pos.x, ddy=cy-pos.y;
         var dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
-        var NODE_R=7;
+        var NODE_R=13; // clears the dot/flag plus the nationality code text sitting at node center
         var startX=pos.x+ddx/dlen*NODE_R, startY=pos.y+ddy/dlen*NODE_R;
         var endX=cx-ddx/dlen*NODE_R, endY=cy-ddy/dlen*NODE_R;
         g.appendChild(el("path",{class:"conn-edge", d:"M"+startX+","+startY+" L"+endX+","+endY, "stroke-linecap":"round"}));

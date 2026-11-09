@@ -123,7 +123,38 @@
           "work": "엘리제를 위하여"
         }
       ]
+    },
+    {
+      "date": "2026-11-09",
+      "items": [
+        {
+          "born": 1827,
+          "composer": "요제프 슈트라우스",
+          "composerYears": "1827–1870",
+          "desc": "요한 2세의 동생이 쓴 왈츠. 별들의 울림처럼 고요히 열려 우아하게 흐른다.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=jdZDISUkT5A",
+          "note": "",
+          "performer": "카라얀 · 빈 필하모닉",
+          "slot": "이어 듣기",
+          "work": "천체의 음악 왈츠 Op.235"
+        },
+        {
+          "born": 1893,
+          "composer": "릴리 불랑제",
+          "composerYears": "1893–1918",
+          "desc": "여성 최초 로마대상 수상자가 스물넷에 남긴 곡. 밝고 반짝이는 봄의 스케치.",
+          "era": "근현대",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=FA7HeZz9Yag",
+          "note": "",
+          "performer": "델랴나 라자로바 · hr 교향악단",
+          "slot": "새 별",
+          "work": "어느 봄날 아침에"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-06"
+  "updated": "2026-11-09"
 }

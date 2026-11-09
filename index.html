@@ -35,8 +35,8 @@
     --focus-ring:#f2d98a;
     --star-dust:#4b5178;
     --edge-ink:#5c649c;
-    --node-years:#b8bee0;
-    --conn-years:#eaa9b0;
+    --node-years:#e4e7f8;
+    --conn-years:#ffd0d5;
   }
 
   :root[data-theme="light"]{
@@ -175,7 +175,7 @@
   .node text.flag{font-size:18px; pointer-events:none; transition:opacity .2s ease;}
   .node .label-bg{fill:var(--bg-deep); opacity:.74; transition:opacity .2s ease;}
   .node text{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:var(--text-primary); pointer-events:none; transition:opacity .2s ease, font-weight .15s ease;}
-  .node text.years{font-family:Consolas,"JetBrains Mono",monospace; font-size:9.5px; fill:var(--node-years);}
+  .node text.years{font-family:Consolas,"JetBrains Mono",monospace; font-size:10px; font-weight:600; fill:var(--node-years);}
   .node circle.ring{pointer-events:all;}
   .node:focus-visible circle.ring{stroke:var(--focus-ring); stroke-width:2;}
   .node.active-node text{font-weight:700;}
@@ -200,7 +200,7 @@
   .selected-fade .node.active-node .label-bg{opacity:.92;}
   .conn-node circle.conn-core{fill:#e8495a; filter:url(#starglow);}
   .conn-node text.conn-label{font-family:Consolas,"JetBrains Mono",monospace; font-size:12px; fill:#f1a3ab; text-anchor:middle; pointer-events:none;}
-  .conn-node text.conn-years{font-family:Consolas,"JetBrains Mono",monospace; font-size:9.5px; fill:var(--conn-years); text-anchor:middle; pointer-events:none;}
+  .conn-node text.conn-years{font-family:Consolas,"JetBrains Mono",monospace; font-size:10px; font-weight:600; fill:var(--conn-years); text-anchor:middle; pointer-events:none;}
 
   .life-band{display:none; fill:var(--gold); opacity:.1; pointer-events:none;}
   .life-band.life-band-visible{display:block;}

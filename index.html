@@ -178,6 +178,18 @@
   .node text.years{font-family:Consolas,"JetBrains Mono",monospace; font-size:10px; font-weight:600; fill:var(--node-years);}
   .node circle.ring{pointer-events:all;}
   .node:focus-visible circle.ring{stroke:var(--focus-ring); stroke-width:2;}
+  /* search: matching stars pop, everything else steps back */
+  .search-on .node:not(.search-hit){opacity:.22; transition:opacity .2s ease;}
+  .search-on .edge, .search-on .conn-layer{opacity:.12;}
+  .search-on .node.search-hit circle.ring{stroke:var(--gold); stroke-width:2.5; r:15; animation:searchPulse 1.4s ease-in-out infinite;}
+  .search-on .node.search-hit text{opacity:1 !important; fill:var(--gold); font-weight:700;}
+  .search-on .node.search-hit text.years{fill:var(--gold);}
+  .search-on .node.search-hit .label-bg{opacity:.95 !important; stroke:var(--gold); stroke-width:1.2;}
+  .search-on .node.search-hit circle.core{opacity:1 !important;}
+  .search-on .node.search-active circle.ring{stroke-width:3.5; r:18;}
+  .search-on .node.search-active text:not(.years):not(.flag){font-size:15px;}
+  @keyframes searchPulse{0%,100%{stroke-opacity:1;} 50%{stroke-opacity:.25;}}
+  @media (prefers-reduced-motion:reduce){ .search-on .node.search-hit circle.ring{animation:none;} }
   .node.active-node text{font-weight:700;}
   .node.active-node text.years{fill:var(--text-primary);}
 

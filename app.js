@@ -741,6 +741,33 @@
       if(nodeEls[currentId]) highlightSelection(currentId);
       else clearSelection();
     }
+    applySearchHighlight();
+  }
+
+  // ---------------- search highlight on the map ----------------
+  // While the search box has text, every matching star gets a pulsing gold ring and a bold
+  // label, everything else dims, and the suggestion under the cursor is marked strongest.
+  var searchHitIds = [], searchActiveId = null;
+  function setSearchHighlight(ids, activeId, scroll){
+    searchHitIds = ids||[]; searchActiveId = activeId||null;
+    applySearchHighlight();
+    if(scroll && searchActiveId && nodeEls[searchActiveId]){
+      var g = nodeEls[searchActiveId], wrap = document.getElementById("stageScroll");
+      var r = g.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+      var off = r.right < w.left+40 || r.left > w.right-40 || r.bottom < w.top+40 || r.top > w.bottom-40;
+      if(off && g.scrollIntoView) g.scrollIntoView({behavior:"smooth", block:"center", inline:"center"});
+    }
+  }
+  function applySearchHighlight(){
+    if(!stage) return;
+    var on = searchHitIds.length>0, hit = {};
+    searchHitIds.forEach(function(id){ hit[id]=true; });
+    stage.classList.toggle("search-on", on);
+    Object.keys(nodeEls).forEach(function(nid){
+      nodeEls[nid].classList.toggle("search-hit", !!hit[nid]);
+      nodeEls[nid].classList.toggle("search-active", on && nid===searchActiveId);
+      if(hit[nid]) nodeEls[nid].parentNode.appendChild(nodeEls[nid]); // draw hits above neighbours
+    });
   }
 
   // Lays out a person's 인연 on arcs around them. Earlier-born connections take the left arc,
@@ -1552,7 +1579,7 @@
     var box=document.getElementById("searchSuggest");
     var matches=[], activeIdx=-1;
 
-    function closeBox(){ box.classList.remove("open"); box.innerHTML=""; matches=[]; activeIdx=-1; }
+    function closeBox(){ box.classList.remove("open"); box.innerHTML=""; matches=[]; activeIdx=-1; setSearchHighlight([]); }
     function renderBox(){
       if(!matches.length){ closeBox(); return; }
       box.innerHTML = matches.map(function(p,i){
@@ -1564,6 +1591,10 @@
       box.classList.add("open");
       box.querySelectorAll(".search-suggest-item").forEach(function(el){
         // mousedown (not click) so this fires before the input's blur-triggered close
+        el.addEventListener("mouseenter", function(){
+          var i=parseInt(el.getAttribute("data-idx"),10);
+          if(matches[i]) setSearchHighlight(searchHitIds, matches[i].id, true);
+        });
         el.addEventListener("mousedown", function(e){
           e.preventDefault();
           pick(parseInt(el.getAttribute("data-idx"),10));
@@ -1573,11 +1604,13 @@
     function updateMatches(){
       var q=input.value.trim().toLowerCase();
       if(!q){ closeBox(); return; }
-      matches = STATE.people.filter(function(p){
+      var all = STATE.people.filter(function(p){
         return p.name.toLowerCase().indexOf(q)>-1 || (p.fullName && p.fullName.toLowerCase().indexOf(q)>-1);
-      }).slice(0,8);
+      });
+      matches = all.slice(0,8);
       activeIdx = matches.length ? 0 : -1;
       renderBox();
+      setSearchHighlight(all.map(function(p){ return p.id; }), matches.length ? matches[0].id : null, true);
     }
     function pick(idx){
       var p=matches[idx];
@@ -1591,8 +1624,8 @@
     input.addEventListener("focus", function(){ if(input.value.trim()) updateMatches(); });
     input.addEventListener("blur", function(){ setTimeout(closeBox, 120); });
     input.addEventListener("keydown", function(e){
-      if(e.key==="ArrowDown" && matches.length){ e.preventDefault(); activeIdx=(activeIdx+1)%matches.length; renderBox(); return; }
-      if(e.key==="ArrowUp" && matches.length){ e.preventDefault(); activeIdx=(activeIdx-1+matches.length)%matches.length; renderBox(); return; }
+      if(e.key==="ArrowDown" && matches.length){ e.preventDefault(); activeIdx=(activeIdx+1)%matches.length; renderBox(); setSearchHighlight(searchHitIds, matches[activeIdx].id, true); return; }
+      if(e.key==="ArrowUp" && matches.length){ e.preventDefault(); activeIdx=(activeIdx-1+matches.length)%matches.length; renderBox(); setSearchHighlight(searchHitIds, matches[activeIdx].id, true); return; }
       if(e.key==="Escape"){ closeBox(); return; }
       if(e.key!=="Enter") return;
       if(matches.length) pick(activeIdx>=0 ? activeIdx : 0);

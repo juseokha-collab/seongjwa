@@ -162,6 +162,24 @@
     "필리핀":"🇵🇭",
     "로마":"🇮🇹","고대로마":"🇮🇹","로마제국":"🇮🇹"
   };
+  // How far along direction (ux,uy) a line must start from a star's centre to clear its mark
+  // plus a small gap: the nationality code text (e.g. "DE") is a wide box, a plain star a dot.
+  var EDGE_GAP = 6, clearanceCache = {};
+  function nodeClearance(p, ux, uy){
+    var flag = flagEmoji(p.nationality), hw, hh;
+    if(flag){
+      if(clearanceCache[flag]==null){
+        measureCtx.font = "18px "+NODE_LABEL_FONT;
+        // Windows shows flag emoji as two letters ("DE"), others as a picture; cover both
+        clearanceCache[flag] = Math.max(measureCtx.measureText(flag).width/2, 13);
+      }
+      hw = clearanceCache[flag]; hh = 8;
+    } else { hw = 6; hh = 6; }
+    hw += EDGE_GAP; hh += EDGE_GAP;
+    var ax=Math.abs(ux), ay=Math.abs(uy);
+    var tx = ax>1e-6 ? hw/ax : Infinity, ty = ay>1e-6 ? hh/ay : Infinity;
+    return Math.min(tx, ty);
+  }
   function flagEmoji(nat){
     if(!nat) return null;
     var first = nat.split(",")[0].trim();
@@ -597,9 +615,12 @@
       if(!posA||!posB) return;
       var ddx=posB.x-posA.x, ddy=posB.y-posA.y;
       var dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
-      var NODE_R=7;
-      var endX=posB.x-ddx/dlen*NODE_R, endY=posB.y-ddy/dlen*NODE_R;
-      var attrs={class:"edge", d:"M"+posA.x+","+posA.y+" L"+endX+","+endY, "stroke-linecap":"round", "stroke-dasharray":"1 3.4"};
+      var ux=ddx/dlen, uy=ddy/dlen;
+      var trimA=nodeClearance(pa, ux, uy), trimB=nodeClearance(pb, ux, uy);
+      if(trimA+trimB >= dlen-4) return; // stars nearly touching: no room for a line
+      var startX=posA.x+ux*trimA, startY=posA.y+uy*trimA;
+      var endX=posB.x-ux*trimB, endY=posB.y-uy*trimB;
+      var attrs={class:"edge", d:"M"+startX+","+startY+" L"+endX+","+endY, "stroke-linecap":"round", "stroke-dasharray":"1 3.4"};
       var line=el("path",attrs);
       line.dataset.a=pa.id; line.dataset.b=pb.id; line.dataset.rid=r.id;
       edgeLayer.appendChild(line);
@@ -706,8 +727,8 @@
         var conn=pl.conn, cx=pl.x, cy=pl.y;
         var ddx=cx-pos.x, ddy=cy-pos.y;
         var dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
-        var NODE_R=7;
-        var startX=pos.x+ddx/dlen*NODE_R, startY=pos.y+ddy/dlen*NODE_R;
+        var NODE_R=8, trimP=nodeClearance(p, ddx/dlen, ddy/dlen);
+        var startX=pos.x+ddx/dlen*trimP, startY=pos.y+ddy/dlen*trimP;
         var endX=cx-ddx/dlen*NODE_R, endY=cy-ddy/dlen*NODE_R;
         // edges sit beneath the node layer so they never strike through the selected person's name
         eg.appendChild(el("path",{class:"conn-edge", d:"M"+startX+","+startY+" L"+endX+","+endY, "stroke-linecap":"round"}));

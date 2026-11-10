@@ -154,7 +154,38 @@
           "work": "어느 봄날 아침에"
         }
       ]
+    },
+    {
+      "date": "2026-11-10",
+      "items": [
+        {
+          "born": 1862,
+          "composer": "드뷔시",
+          "composerYears": "1862–1918",
+          "desc": "달빛이 번지듯 고요한 피아노 소품. 영화 <오션스 일레븐>에서 벨라지오 분수 앞에 일당이 모여 서는 엔딩 장면에 흐른다.",
+          "era": "근현대",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=97_VJve7UVc",
+          "note": "",
+          "performer": "조성진",
+          "slot": "영화 속 클래식",
+          "work": "베르가마스크 모음곡 중 3곡 ‘달빛’"
+        },
+        {
+          "born": 1756,
+          "composer": "모차르트",
+          "composerYears": "1756–1791",
+          "desc": "‘작은 밤의 음악’이라는 뜻의 현악 세레나데. 첫 소절만 들어도 아는 경쾌한 1악장.",
+          "era": "고전",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=oE6gPCfwgng",
+          "note": "",
+          "performer": "슈투트가르트 체임버 오케스트라",
+          "slot": "익숙한 명곡",
+          "work": "아이네 클라이네 나흐트무지크 K.525 중 1악장"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-09"
+  "updated": "2026-11-10"
 }

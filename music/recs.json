@@ -185,7 +185,38 @@
           "work": "아이네 클라이네 나흐트무지크 K.525 중 1악장"
         }
       ]
+    },
+    {
+      "date": "2026-11-11",
+      "items": [
+        {
+          "born": 1813,
+          "composer": "바그너",
+          "composerYears": "1813–1883",
+          "desc": "영화 <지옥의 묵시록>에서 헬기 편대가 마을을 습격하는 장면에 쓰였다. 질주하는 금관이 압도적이다.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=AM6EDcKfJAY",
+          "note": "",
+          "performer": "빈 필하모닉",
+          "slot": "영화 속 클래식",
+          "work": "발퀴레의 기행"
+        },
+        {
+          "born": 1866,
+          "composer": "에릭 사티",
+          "composerYears": "1866–1925",
+          "desc": "느리고 고요한 3박자 위로 흐르는 단순한 선율, 사티를 대표하는 피아노 소품.",
+          "era": "근현대",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=TL0xzp4zzBE",
+          "note": "",
+          "performer": "카티아 부니아티쉬빌리",
+          "slot": "익숙한 명곡",
+          "work": "짐노페디 1번"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-10"
+  "updated": "2026-11-11"
 }

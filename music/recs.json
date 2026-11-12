@@ -216,7 +216,38 @@
           "work": "짐노페디 1번"
         }
       ]
+    },
+    {
+      "date": "2026-11-12",
+      "items": [
+        {
+          "born": 1863,
+          "composer": "마스카니",
+          "composerYears": "1863–1945",
+          "desc": "오페라 막간에 흐르는 애절한 현의 간주곡. 영화 <대부 3>의 엔딩, 오페라 극장 계단에서 마이클이 비극을 맞는 장면에 쓰였다.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=YuDDyuxkOuQ",
+          "note": "",
+          "performer": "야닉 네제세갱 · 메트로폴리탄 오페라 오케스트라",
+          "slot": "영화 속 클래식",
+          "work": "카발레리아 루스티카나 간주곡"
+        },
+        {
+          "born": 1685,
+          "composer": "바흐",
+          "composerYears": "1685–1750",
+          "desc": "관현악 모음곡 3번의 2곡 아리아. 길게 이어지는 고요한 선율로 바흐 하면 가장 먼저 떠오르는 곡이다.",
+          "era": "바로크",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=pzlw6fUux4o",
+          "note": "",
+          "performer": "보이시스 오브 뮤직",
+          "slot": "익숙한 명곡",
+          "work": "G선상의 아리아 (관현악 모음곡 3번 BWV 1068 중 아리아)"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-11"
+  "updated": "2026-11-12"
 }

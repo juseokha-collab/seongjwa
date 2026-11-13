@@ -1287,9 +1287,21 @@
     document.getElementById("pmName").focus();
   }
   function renderConnRows(connections){
+    renderConnNameOptions();
     var wrap=document.getElementById("pmConnList");
     wrap.innerHTML="";
     (connections||[]).forEach(function(c){ addConnRow(c); });
+  }
+  // lets the 인연 name field suggest people already on the map (same datalist pattern as
+  // the 관계 "인물 검색" field), so the same person doesn't get re-entered under a slightly
+  // different spelling
+  function renderConnNameOptions(){
+    var dl=document.getElementById("connNameList");
+    if(!dl) return;
+    dl.innerHTML = STATE.people
+      .filter(function(x){ return x.id!==editingId; })
+      .map(function(x){ return '<option value="'+escapeHtml(x.name)+'">'+escapeHtml(yearsLabel(x))+'</option>'; })
+      .join("");
   }
   function addConnRow(conn){
     var wrap=document.getElementById("pmConnList");
@@ -1297,21 +1309,33 @@
     row.className="conn-row";
     row.innerHTML =
       '<input type="text" class="conn-relation" placeholder="호칭 (예: 아내)">'+
-      '<input type="text" class="conn-name" placeholder="인연">'+
+      '<input type="text" class="conn-name" placeholder="인연" list="connNameList" autocomplete="off">'+
       '<input type="text" class="conn-year" placeholder="출생-사망 (선택, 예: 1800-1850)">'+
       '<input type="text" class="conn-note" placeholder="비고">'+
       '<button type="button" class="conn-remove" aria-label="인연 삭제">✕</button>';
     row.querySelector(".conn-relation").value = conn ? (conn.relation||"") : "";
-    row.querySelector(".conn-name").value = conn ? (conn.name||"") : "";
+    var nameInput = row.querySelector(".conn-name");
+    nameInput.value = conn ? (conn.name||"") : "";
     var yearVal = "";
     if(conn){
       var birthStr = formatDateInput(conn.sortYear, conn.birthMonth, conn.birthDay);
       var deathStr = formatDateInput(conn.deathYear, conn.deathMonth, conn.deathDay);
       yearVal = deathStr ? (birthStr+"-"+deathStr) : birthStr;
     }
-    row.querySelector(".conn-year").value = yearVal;
+    var yearInput = row.querySelector(".conn-year");
+    yearInput.value = yearVal;
     row.querySelector(".conn-note").value = conn ? (conn.note||"") : "";
     row.querySelector(".conn-remove").addEventListener("click", function(){ row.remove(); });
+    // picking an existing person from the datalist also fills in their birth-death,
+    // but only when the field is still empty so it never overwrites a typed value
+    nameInput.addEventListener("input", function(){
+      if(yearInput.value.trim()) return;
+      var match = STATE.people.filter(function(x){ return x.id!==editingId && x.name===nameInput.value; })[0];
+      if(!match) return;
+      var birthStr = formatDateInput(match.sortYear, match.birthMonth, match.birthDay);
+      var deathStr = formatDateInput(match.deathYear, match.deathMonth, match.deathDay);
+      yearInput.value = deathStr ? (birthStr+"-"+deathStr) : birthStr;
+    });
     wrap.appendChild(row);
   }
   function renderCatOptions(selectedId){

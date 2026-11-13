@@ -691,13 +691,28 @@
             pp.manualRow = Math.max(0, Math.round((finalY - catLaneTop - SUBROW_H/2)/SUBROW_H));
             var finalX = startPos.x + dx;
             var PAD = 14;
-            if(xBounds.prevX!=null && xBounds.nextX!=null && xBounds.prevX+PAD > xBounds.nextX-PAD){
-              finalX = (xBounds.prevX+xBounds.nextX)/2;
-            } else {
-              if(xBounds.prevX!=null) finalX = Math.max(finalX, xBounds.prevX+PAD);
-              if(xBounds.nextX!=null) finalX = Math.min(finalX, xBounds.nextX-PAD);
-            }
+            if(xBounds.prevX!=null) finalX = Math.max(finalX, xBounds.prevX+PAD);
             STATE.people.forEach(function(q){ if(q.sortYear===pp.sortYear) q.manualX = finalX; });
+            // later-born people ride along instead of just blocking the drag — dragging a
+            // star rightward into one of them now carries it (and the chain after it) along
+            var laterYears = [];
+            var seenYear = {};
+            STATE.people.forEach(function(q){
+              if(q.sortYear>pp.sortYear && layout.pos[q.id] && !seenYear[q.sortYear]){ seenYear[q.sortYear]=true; laterYears.push(q.sortYear); }
+            });
+            laterYears.sort(function(a,b){ return a-b; });
+            var floorX = finalX;
+            laterYears.forEach(function(yr){
+              var group = STATE.people.filter(function(q){ return q.sortYear===yr && layout.pos[q.id]; });
+              var repX = group[0].manualX!=null ? group[0].manualX : layout.pos[group[0].id].x;
+              if(repX < floorX+PAD){
+                var newX = floorX+PAD;
+                group.forEach(function(q){ q.manualX = newX; });
+                floorX = newX;
+              } else {
+                floorX = repX;
+              }
+            });
             gg.removeAttribute("transform");
             justDraggedId = pp.id;
             setTimeout(function(){ justDraggedId=null; }, 300);

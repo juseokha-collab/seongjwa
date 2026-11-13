@@ -591,8 +591,12 @@
     STATE.people.forEach(function(p){
       var pos = layout.pos[p.id];
       if(!pos) return;
-      var x1 = layout.yearToX(p.sortYear);
-      var x2 = p.deathYear!=null ? layout.yearToX(p.deathYear) : (layout.width-MARGIN_R);
+      // anchor the band to where the node actually renders (pos.x honors a manual drag),
+      // not the raw chronological x — otherwise a manually-dragged node and its own
+      // lifespan band visibly disagree on where that person "is" on the timeline
+      var shift = pos.x - layout.yearToX(p.sortYear);
+      var x1 = pos.x;
+      var x2 = p.deathYear!=null ? (layout.yearToX(p.deathYear)+shift) : (layout.width-MARGIN_R);
       if(x2<x1){ var tmp=x1; x1=x2; x2=tmp; }
       var band=el("rect",{class:"life-band", x:x1, y:0, width:Math.max(1,x2-x1), height:layout.height});
       lifeBandLayer.appendChild(band);

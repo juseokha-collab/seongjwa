@@ -247,7 +247,38 @@
           "work": "G선상의 아리아 (관현악 모음곡 3번 BWV 1068 중 아리아)"
         }
       ]
+    },
+    {
+      "date": "2026-11-13",
+      "items": [
+        {
+          "born": 1685,
+          "composer": "헨델",
+          "composerYears": "1685–1759",
+          "desc": "영화 <배리 린든>에서 결투 장면과 오프닝·엔딩에 반복해 흐르는 장엄한 사라방드. 느리고 무거운 춤곡 리듬이 운명을 예고하듯 울린다.",
+          "era": "바로크",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=8RahYPd-i8k",
+          "note": "",
+          "performer": "루카 필하모닉 · 안드레아 콜롬비니",
+          "slot": "영화 속 클래식",
+          "work": "건반 모음곡 d단조 HWV 437 중 사라방드"
+        },
+        {
+          "born": 1843,
+          "composer": "그리그",
+          "composerYears": "1843–1907",
+          "desc": "작게 시작한 선율이 점점 빨라지고 커지며 폭발하는 곡. 광고·게임에서 한 번쯤 들어봤을 바로 그 멜로디.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=BLZl-hhbXDI",
+          "note": "",
+          "performer": "시드니 심포니 오케스트라 · 블라디미르 아시케나지",
+          "slot": "익숙한 명곡",
+          "work": "페르 귄트 모음곡 1번 중 ‘산왕의 궁전에서’"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-12"
+  "updated": "2026-11-13"
 }

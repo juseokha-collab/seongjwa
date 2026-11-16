@@ -278,7 +278,38 @@
           "work": "페르 귄트 모음곡 1번 중 ‘산왕의 궁전에서’"
         }
       ]
+    },
+    {
+      "date": "2026-11-16",
+      "items": [
+        {
+          "born": 1858,
+          "composer": "푸치니",
+          "composerYears": "1858–1924",
+          "desc": "영화 <전망 좋은 방>에서 피렌체를 여는 첫 장면에 흐른다. 딸이 아버지에게 결혼을 허락해 달라 조르는 3분짜리 아리아.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=l1C8NFDdFYg",
+          "note": "",
+          "performer": "마리아 칼라스",
+          "slot": "영화 속 클래식",
+          "work": "오페라 <잔니 스키키> 중 ‘오 사랑하는 나의 아버지’"
+        },
+        {
+          "born": 1811,
+          "composer": "리스트",
+          "composerYears": "1811–1886",
+          "desc": "원래 가곡을 피아노로 옮긴 곡. 잔잔한 선율이 점점 벅차게 부풀어 오른다.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=FZ651tNXp0Y",
+          "note": "",
+          "performer": "카티아 부니아티슈빌리",
+          "slot": "익숙한 명곡",
+          "work": "사랑의 꿈 3번"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-13"
+  "updated": "2026-11-16"
 }

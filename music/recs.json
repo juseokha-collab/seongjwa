@@ -309,7 +309,38 @@
           "work": "사랑의 꿈 3번"
         }
       ]
+    },
+    {
+      "date": "2026-11-17",
+      "items": [
+        {
+          "born": 1756,
+          "composer": "모차르트",
+          "composerYears": "1756–1791",
+          "desc": "두 여인이 편지를 받아 적으며 부르는 투명한 이중창. 영화 <쇼생크 탈출>에서 앤디가 교도소 스피커로 이 곡을 틀어 모두가 멈춰 듣는 장면에 쓰였다.",
+          "era": "고전",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=Hz6CvGQeZBc",
+          "note": "",
+          "performer": "엘리자베스 카터 · 페트라 마리아 슈니처 · 소피아 교향악단",
+          "slot": "영화 속 클래식",
+          "work": "오페라 <피가로의 결혼> 중 ‘저녁 산들바람은 부드럽게’"
+        },
+        {
+          "born": 1841,
+          "composer": "드보르작",
+          "composerYears": "1841–1904",
+          "desc": "잉글리시 호른이 부르는 향수 어린 선율로 ‘꿈속의 고향’으로도 불리는 악장.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=uB18t0Y24Yo",
+          "note": "",
+          "performer": "카라얀 · 빈 필하모닉",
+          "slot": "익숙한 명곡",
+          "work": "교향곡 9번 ‘신세계로부터’ 중 2악장 라르고"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-16"
+  "updated": "2026-11-17"
 }

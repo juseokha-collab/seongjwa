@@ -38,9 +38,24 @@
 
   function normalizeState(s){
     s.categories.forEach(function(c){ if(!c.subs) c.subs=[]; });
-    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; if(p.bioHtml===undefined) p.bioHtml=null; if(p.manualX===undefined) p.manualX=null; if(p.fullName===undefined) p.fullName=null; if(p.nationality===undefined) p.nationality=null; if(p.connections===undefined) p.connections=[]; });
+    s.people.forEach(function(p){ if(p.subId===undefined) p.subId=null; if(p.manualRow===undefined) p.manualRow=null; if(p.bioHtml===undefined) p.bioHtml=null; if(p.manualX===undefined) p.manualX=null; if(p.fullName===undefined) p.fullName=null; if(p.nationality===undefined) p.nationality=null; if(p.connections===undefined) p.connections=[]; if(p.lastTouched==null) p.lastTouched=Date.now(); });
     if(!s.timeAnchors) s.timeAnchors={};
     return s;
+  }
+
+  // 관심 흐림: 열어보거나 수정한 지 1주일이 지날 때마다 5%씩 흐려지되, FADE_MIN 아래로는 내려가지 않는다.
+  var WEEK_MS = 7*24*60*60*1000;
+  var FADE_STEP = 0.05;
+  var FADE_MIN = 0.4;
+  function fadeOf(p){
+    var weeks = Math.floor(Math.max(0, Date.now() - (p.lastTouched||Date.now())) / WEEK_MS);
+    return Math.max(FADE_MIN, 1 - FADE_STEP*weeks);
+  }
+  function touchPerson(p){
+    if(!p) return;
+    p.lastTouched = Date.now();
+    if(nodeEls[p.id]) nodeEls[p.id].style.setProperty("--fade", "1");
+    persistLocal(); notifyCloud();
   }
 
   var STATE = normalizeState(loadLocal() || defaultState());
@@ -640,6 +655,7 @@
       var c = catOf(p.catId);
       var color = personColor(p);
       var g=el("g",{class:"node", tabindex:"0", role:"button", "aria-label":p.name+", "+yearsLabel(p)+(c?(", "+c.name):""), "data-id":p.id});
+      g.style.setProperty("--fade", fadeOf(p).toFixed(2));
       g.appendChild(el("circle",{class:"ring", cx:pos.x, cy:pos.y, r:11, fill:"none", stroke:"transparent"}));
       var labelW = labelHalfWidth(p)*2+10;
       g.appendChild(el("rect",{class:"label-bg", x:pos.x-labelW/2, y:pos.y-37, width:labelW, height:29, rx:5}));
@@ -907,10 +923,11 @@
     panel.classList.remove("open"); panel.setAttribute("aria-hidden","true");
   }
 
-  function selectNode(id){
+  function selectNode(id, opts){
     hideTooltip();
     if(currentId!==id) editingNoteId=null;
     currentId=id;
+    if(!(opts&&opts.auto)) touchPerson(personOf(id));
     highlightSelection(id);
     renderPanel(id);
     var panel=document.getElementById("panel");
@@ -1470,8 +1487,9 @@
         var p=personOf(editingId);
         for(var k in fields) p[k]=fields[k];
         p.updateCount = (p.updateCount||0) + 1;
+        p.lastTouched = Date.now();
       } else {
-        fields.id=uid("p"); fields.notes=[]; fields.updateCount=0;
+        fields.id=uid("p"); fields.notes=[]; fields.updateCount=0; fields.lastTouched=Date.now();
         STATE.people.push(fields);
       }
       closePersonModal();
@@ -1627,7 +1645,7 @@
     var cat = catsWithPeople[Math.floor(Math.random()*catsWithPeople.length)];
     var members = STATE.people.filter(function(p){ return p.catId===cat.id; });
     var person = members[Math.floor(Math.random()*members.length)];
-    selectNode(person.id);
+    selectNode(person.id, {auto:true}); // 자동 스포트라이트는 관심 기록으로 치지 않는다
     var body=document.getElementById("panelBody");
     if(body && body.firstChild){
       var tag=document.createElement("div");

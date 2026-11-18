@@ -171,6 +171,8 @@
 
   .node{cursor:grab; outline:none; touch-action:none;}
   .node:active{cursor:grabbing;}
+  .node{opacity:var(--fade,1); transition:opacity .2s ease;}
+  .node:hover, .node:focus-visible, .node.active-node, .search-on .node.search-hit{opacity:1;}
   .node circle.core{transition:r .15s ease, opacity .2s ease;}
   .node text.flag{font-size:18px; pointer-events:none; transition:opacity .2s ease;}
   .node .label-bg{fill:var(--bg-deep); opacity:.74; transition:opacity .2s ease;}

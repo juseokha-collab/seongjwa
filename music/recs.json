@@ -371,7 +371,38 @@
           "work": "헝가리 무곡 5번"
         }
       ]
+    },
+    {
+      "date": "2026-11-19",
+      "items": [
+        {
+          "born": 1756,
+          "composer": "모차르트",
+          "composerYears": "1756–1791",
+          "desc": "영화 <아마데우스>에서 빗속에 모차르트의 관이 공동묘지로 옮겨지는 마지막 장면에 흐른다. 미완성 유작의 비통한 합창.",
+          "era": "고전",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=G-kJVmEWWV8",
+          "note": "",
+          "performer": "카를 뵘 · 빈 심포니 오케스트라",
+          "slot": "영화 속 클래식",
+          "work": "레퀴엠 K.626 중 ‘라크리모사’"
+        },
+        {
+          "born": 1685,
+          "composer": "헨델",
+          "composerYears": "1685–1759",
+          "desc": "청중이 기립해 듣는 전통이 생길 만큼 웅장하고 벅찬, 오라토리오 <메시아>의 대표 합창.",
+          "era": "바로크",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=w_ccuyPO1W4",
+          "note": "",
+          "performer": "테네브레 합창단 · 에이션트 뮤직 아카데미 · 나이절 쇼트",
+          "slot": "익숙한 명곡",
+          "work": "메시아 중 ‘할렐루야’"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-18"
+  "updated": "2026-11-19"
 }

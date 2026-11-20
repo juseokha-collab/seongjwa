@@ -692,27 +692,20 @@
             var finalX = startPos.x + dx;
             var PAD = 14;
             if(xBounds.prevX!=null) finalX = Math.max(finalX, xBounds.prevX+PAD);
+            var appliedDx = finalX - startPos.x;
             STATE.people.forEach(function(q){ if(q.sortYear===pp.sortYear) q.manualX = finalX; });
-            // later-born people ride along instead of just blocking the drag — dragging a
-            // star rightward into one of them now carries it (and the chain after it) along
-            var laterYears = [];
-            var seenYear = {};
-            STATE.people.forEach(function(q){
-              if(q.sortYear>pp.sortYear && layout.pos[q.id] && !seenYear[q.sortYear]){ seenYear[q.sortYear]=true; laterYears.push(q.sortYear); }
-            });
-            laterYears.sort(function(a,b){ return a-b; });
-            var floorX = finalX;
-            laterYears.forEach(function(yr){
-              var group = STATE.people.filter(function(q){ return q.sortYear===yr && layout.pos[q.id]; });
-              var repX = group[0].manualX!=null ? group[0].manualX : layout.pos[group[0].id].x;
-              if(repX < floorX+PAD){
-                var newX = floorX+PAD;
-                group.forEach(function(q){ q.manualX = newX; });
-                floorX = newX;
-              } else {
-                floorX = repX;
-              }
-            });
+            // later-born people ride along by the same delta the drag actually applied —
+            // a flat translation, not a collision squeeze, so a big drag doesn't collapse
+            // everyone born after pp into a tight cluster right next to it (that bug is what
+            // made Machiavelli end up parked two centuries off from his real timeline spot)
+            if(appliedDx){
+              STATE.people.forEach(function(q){
+                if(q.sortYear>pp.sortYear && layout.pos[q.id]){
+                  var curX = q.manualX!=null ? q.manualX : layout.pos[q.id].x;
+                  q.manualX = curX + appliedDx;
+                }
+              });
+            }
             gg.removeAttribute("transform");
             justDraggedId = pp.id;
             setTimeout(function(){ justDraggedId=null; }, 300);

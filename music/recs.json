@@ -402,7 +402,38 @@
           "work": "메시아 중 ‘할렐루야’"
         }
       ]
+    },
+    {
+      "date": "2026-11-20",
+      "items": [
+        {
+          "born": 1895,
+          "composer": "카를 오르프",
+          "composerYears": "1895–1982",
+          "desc": "영화 <엑스칼리버>에서 아서 왕과 기사들이 꽃길을 달려 전장으로 향하는 장면에 쓰였다. 웅장한 합창이 단번에 귀를 사로잡는다.",
+          "era": "근현대",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=EJC-_j3SnXk",
+          "note": "",
+          "performer": "앙드레 리우 · 요한 슈트라우스 오케스트라",
+          "slot": "영화 속 클래식",
+          "work": "카르미나 부라나 중 ‘오 운명의 여신이여’"
+        },
+        {
+          "born": 1797,
+          "composer": "슈베르트",
+          "composerYears": "1797–1828",
+          "desc": "슈베르트가 스콧의 시에 붙인 가곡으로, 기도처럼 고요하고 따뜻한 선율이 오래 남는다.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=VyW60k-S9ac",
+          "note": "",
+          "performer": "안드레아 보첼리",
+          "slot": "익숙한 명곡",
+          "work": "아베 마리아"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-19"
+  "updated": "2026-11-20"
 }

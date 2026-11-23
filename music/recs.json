@@ -433,7 +433,38 @@
           "work": "아베 마리아"
         }
       ]
+    },
+    {
+      "date": "2026-11-23",
+      "items": [
+        {
+          "born": 1770,
+          "composer": "베토벤",
+          "composerYears": "1770–1827",
+          "desc": "영화 <킹스 스피치>에서 조지 6세가 개전 라디오 연설을 끝까지 해내는 장면에 쓰였다.",
+          "era": "고전",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=VPKAntzmwAw",
+          "note": "",
+          "performer": "카를로스 클라이버 · 빈 필하모닉",
+          "slot": "영화 속 클래식",
+          "work": "교향곡 7번 중 2악장 알레그레토"
+        },
+        {
+          "born": 1840,
+          "composer": "차이코프스키",
+          "composerYears": "1840–1893",
+          "desc": "하프 서주 뒤 펼쳐지는 화사한 왈츠로, 연말마다 자주 들린다.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=xqmRbetk1z4",
+          "note": "",
+          "performer": "볼쇼이 극장 오케스트라",
+          "slot": "익숙한 명곡",
+          "work": "호두까기 인형 중 '꽃의 왈츠'"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-20"
+  "updated": "2026-11-23"
 }

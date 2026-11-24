@@ -464,7 +464,38 @@
           "work": "호두까기 인형 중 '꽃의 왈츠'"
         }
       ]
+    },
+    {
+      "date": "2026-11-24",
+      "items": [
+        {
+          "born": 1756,
+          "composer": "모차르트",
+          "composerYears": "1756–1791",
+          "desc": "영화 <엘비라 마디간>에서 두 연인의 짧고 눈부신 여름 장면에 흐른다. 꿈결 같은 선율.",
+          "era": "고전",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=oTwm5XWwOKg",
+          "note": "",
+          "performer": "게자 안다 · 카메라타 잘츠부르크",
+          "slot": "영화 속 클래식",
+          "work": "피아노 협주곡 21번 K.467 중 2악장 안단테"
+        },
+        {
+          "born": 1813,
+          "composer": "베르디",
+          "composerYears": "1813–1901",
+          "desc": "파티에서 잔을 들며 부르는 이중창. 신년 음악회 단골곡.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=CV6YF1XCIkg",
+          "note": "",
+          "performer": "루치아노 파바로티 · 조앤 서덜랜드 · 리처드 보닝",
+          "slot": "익숙한 명곡",
+          "work": "오페라 <라 트라비아타> 중 '축배의 노래'"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-23"
+  "updated": "2026-11-24"
 }

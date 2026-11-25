@@ -495,7 +495,38 @@
           "work": "오페라 <라 트라비아타> 중 '축배의 노래'"
         }
       ]
+    },
+    {
+      "date": "2026-11-25",
+      "items": [
+        {
+          "born": 1685,
+          "composer": "바흐",
+          "composerYears": "1685–1750",
+          "desc": "영화 <양들의 침묵>에서 렉터 박사가 감방에서 이 곡을 틀어 놓고 탈출을 감행하는 장면에 흐른다. 고요하고 단정한 선율.",
+          "era": "바로크",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=sN7mcfzm300",
+          "note": "",
+          "performer": "글렌 굴드",
+          "slot": "영화 속 클래식",
+          "work": "골드베르크 변주곡 BWV 988 중 아리아"
+        },
+        {
+          "born": 1810,
+          "composer": "슈만",
+          "composerYears": "1810–1856",
+          "desc": "‘꿈’이라는 뜻의 짧은 피아노 소품. 호로비츠가 앙코르로 즐겨 연주해 더 유명해졌다.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=V5ysRGdQ-CY",
+          "note": "",
+          "performer": "블라디미르 호로비츠",
+          "slot": "익숙한 명곡",
+          "work": "어린이 정경 Op.15 중 7번 ‘트로이메라이’"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-24"
+  "updated": "2026-11-25"
 }

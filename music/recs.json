@@ -526,7 +526,38 @@
           "work": "어린이 정경 Op.15 중 7번 ‘트로이메라이’"
         }
       ]
+    },
+    {
+      "date": "2026-11-26",
+      "items": [
+        {
+          "born": 1756,
+          "composer": "모차르트",
+          "composerYears": "1756–1791",
+          "desc": "영화 <아마데우스> 첫 장면, 노년의 살리에리가 자살을 시도하는 순간 터져 나온다. 긴박한 단조의 질주.",
+          "era": "고전",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=dmhHpsh7xRU",
+          "note": "",
+          "performer": "빈 필하모닉 · 제임스 레바인",
+          "slot": "영화 속 클래식",
+          "work": "교향곡 25번 g단조 K.183 중 1악장"
+        },
+        {
+          "born": 1782,
+          "composer": "파가니니",
+          "composerYears": "1782–1840",
+          "desc": "수많은 작곡가가 변주곡으로 다시 쓴 바로 그 주제. 바이올린 기교의 정점.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=8EPqCJYQky4",
+          "note": "",
+          "performer": "마리아 두에냐스",
+          "slot": "익숙한 명곡",
+          "work": "24개의 카프리스 중 24번"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-25"
+  "updated": "2026-11-26"
 }

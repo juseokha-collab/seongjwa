@@ -557,7 +557,38 @@
           "work": "24개의 카프리스 중 24번"
         }
       ]
+    },
+    {
+      "date": "2026-11-27",
+      "items": [
+        {
+          "born": 1685,
+          "composer": "바흐",
+          "composerYears": "1685–1750",
+          "desc": "영화 <마스터 앤드 커맨더>에서 선원들이 갈라파고스 섬에 닿는 장면에 흐른다. 첼로 한 대의 잔잔한 물결.",
+          "era": "바로크",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=1prweT95Mo0",
+          "note": "",
+          "performer": "요요마",
+          "slot": "영화 속 클래식",
+          "work": "무반주 첼로 모음곡 1번 BWV 1007 중 프렐류드"
+        },
+        {
+          "born": 1813,
+          "composer": "바그너",
+          "composerYears": "1813–1883",
+          "desc": "결혼식 입장곡 \"딴딴따단\"의 원곡. 신혼 방으로 향하는 축복의 노래다.",
+          "era": "낭만",
+          "liked": false,
+          "link": "https://www.youtube.com/watch?v=3MwrvNTLfNI",
+          "note": "",
+          "performer": "오트마르 주이트너 · 베를린 슈타츠카펠레 · 베를린 국립오페라 합창단",
+          "slot": "익숙한 명곡",
+          "work": "오페라 <로엔그린> 중 '혼례의 합창'"
+        }
+      ]
     }
   ],
-  "updated": "2026-11-26"
+  "updated": "2026-11-27"
 }
